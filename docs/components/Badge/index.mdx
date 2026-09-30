@@ -25,16 +25,16 @@ The `_Badge.cshtml` partial view is a reusable UI component that displays a colo
 
 ## Properties
 
-You pass properties to the Badge using a C# anonymous object.
+You pass properties to the Badge using a C# anonymous object. No property is enforced by the partial: `label`, `labelColor`, and `bgColor` default to empty strings, so set them to render a visible badge.
 
 | Property     | Type     | Required | Default Value | Description |
 | :---         | :---     | :---     | :---          | :---        |
-| `label`      | `string` | **Yes**  | `""`          | The text content displayed inside the badge. |
-| `labelColor` | `string` | **Yes**  | `""`          | The text/foreground color (e.g., `"#0d5f59"`, `"red"`). |
-| `bgColor`    | `string` | **Yes**  | `""`          | The background color of the badge (e.g., `"#e6f2f2"`). |
+| `label`      | `string` | No       | `""`          | The text content displayed inside the badge. HTML-encoded by Razor. |
+| `labelColor` | `string` | No       | `""`          | The text/foreground color (e.g., `"#0d5f59"`, `"red"`). |
+| `bgColor`    | `string` | No       | `""`          | The background color of the badge (e.g., `"#e6f2f2"`). |
 | `dot`        | `bool`   | No       | `true`        | If `true`, a small colored circular dot is prepended to the text. The dot inherits `labelColor`. |
-| `radius`     | `int`    | No       | `4`           | Controls the border-radius applied to the badge container (e.g. `2`, `4`). Maps to Bootstrap's `rounded-*` classes. |
-| `icon`       | `string` | No       | `null`        | Raw HTML string for an icon appended to the end of the badge. Can be an SVG, `<i>`, or `<img>` tag. |
+| `radius`     | `int`    | No       | `4`           | Controls the border-radius applied to the badge container (e.g. `2`, `4`). Rendered as the Bootstrap class `rounded-{radius}`, so use a value your Bootstrap version defines. |
+| `icon`       | `string` | No       | `null`        | Raw HTML string for an icon appended to the end of the badge. Can be an SVG, `<i>`, or `<img>` tag. Rendered with `Html.Raw` (not encoded), so never pass user-supplied content. |
 | `style`      | `object` | No       | `null`        | An anonymous object to override default typography. See the inner `style` properties below. |
 
 ### `style` Object Properties
@@ -45,6 +45,27 @@ It supports standard CSS values (like `14px`, `bold`, etc.).
 | :------- | :------- | :------- | :--------------- | :---------- |
 | `fs`     | `string` | No       | `"12px"`         | Specifies `font-size`. E.g., `"14px"`, `"0.8rem"`. |
 | `fw`     | `string` | No       | `null` (Inherit) | Specifies `font-weight`. E.g., `"600"`, `"bold"`. |
+
+## Rendering Notes
+
+- The badge is a `<span>` with Bootstrap's `badge d-flex align-items-center gap-2 px-3 py-2` classes and `width: fit-content`. Because it uses `d-flex`, each badge is laid out as a block-level flex container; wrap several badges in a flex container to place them side by side.
+- Colors and typography are applied as inline styles.
+- The component has no JavaScript and no component-specific CSS.
+
+## Dependencies
+
+- **Bootstrap 5 CSS** for the `badge`, flex, spacing, and `rounded-*` utility classes.
+- **Bootstrap Icons** only if you use `bi` icon classes, as in example 3 below.
+
+## Accessibility
+
+- The badge adds no ARIA roles or attributes.
+- The status dot is purely visual and has no text alternative, so the `label` text should carry the meaning on its own.
+- Make sure the `labelColor` / `bgColor` combination has sufficient contrast.
+
+## RTL
+
+The partial contains no direction-specific logic. Its flex layout follows the page's text direction, so in RTL pages the dot, label, and icon appear right-to-left.
 
 
 ## Usage Examples

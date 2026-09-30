@@ -126,8 +126,7 @@ const COMPONENTS_DATA = [
     name: "Badge",
     category: "Data Display",
     desc: "Status tag and category badge component.",
-    status: "STABLE",
-    aria: true,
+    aria: false,
     path: "/docs/components/Badge",
   },
   {
@@ -289,7 +288,7 @@ export default function ComponentsGallery() {
               <div>
                 <div className="momah-card-header">
                   <h3 className="momah-card-title">{item.name}</h3>
-                  <span className="momah-card-status">{item.status}</span>
+                  {item.status && <span className="momah-card-status">{item.status}</span>}
                 </div>
                 <p className="momah-card-desc">{item.desc}</p>
               </div>
