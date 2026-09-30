@@ -1,12 +1,12 @@
 {
-  "name": "doc-site",
+  "name": "razor-kit-docs",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "docusaurus": "docusaurus",
-    "presync": "node scripts/sync-docs.js",
-    "start": "npm run presync && docusaurus start",
-    "build": "npm run presync && docusaurus build",
+    "start": "docusaurus start",
+    "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",

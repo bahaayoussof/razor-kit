@@ -1,189 +1,87 @@
-# Momah UI Components
+# RazorKit
 
-A modern, reusable UI component platform for ASP.NET Core MVC, accompanied by an interactive documentation website built with Docusaurus.
+Reusable UI Components for ASP.NET Core MVC.
 
-The project provides a centralized hub where developers can discover reusable UI components, understand their APIs, explore implementation examples, and integrate them quickly into their projects.
+This repository contains the RazorKit documentation website, built with [Docusaurus](https://docusaurus.io/). Each component is documented as a Razor partial view, with usage examples, a parameter reference, and its source code (Razor, CSS, and JavaScript).
 
-Its primary goal is to promote code reuse, standardize UI development, reduce duplicated effort, and accelerate feature delivery across multiple applications.
+> **Status:** early and actively developed. Some component names still use legacy `Momah` identifiers (for example `MomahSelect` and `MomahTable`); these will be migrated in a later stage.
 
 ---
 
-## ✨ Features
+## Features
 
-- 📚 Interactive component documentation
-- 🧩 Reusable ASP.NET Core MVC UI Components
-- 💻 View complete source code
-- 📝 Step-by-step implementation guides
-- 📋 Component API & configuration documentation
-- 📄 Copy-ready implementation examples
-- 🔍 Fast component search
-- 📱 Responsive documentation website
-- ⚡ Automatic documentation synchronization
-- 🎮 Interactive Playground *(Currently in progress)*
-- 🔤 Advanced AutoComplete Component *(Currently under development)*
+- 📚 Documentation for 21 components, grouped into Form Controls, Data Display, Overlays & Feedback, and Navigation
+- 📋 Parameter reference and copy-ready usage examples for each component
+- 💻 Component source code (`.cshtml`, CSS, JavaScript) on each component page
+- 🔍 Components Gallery (`/components`) with search and category filters
+- 🌗 Light and dark mode
 
 ---
 
 ## Project Structure
 
 ```text
-/
-├── _Banner/
-├── _DateRange/
-├── _Tooltip/
+razor-kit/
 ├── docs/
+│   ├── intro.mdx             # Documentation overview
+│   └── components/           # One folder per component (index.mdx + screenshots)
 ├── src/
-├── scripts/
-└── docusaurus.config.ts
-```
-
-Each component lives inside its own root directory (`_ComponentName`).
-
-A component typically contains:
-
-- Documentation
-- Razor Partial View (.cshtml)
-- JavaScript
-- CSS / SCSS
-- Assets (images, icons)
-- Examples
-- Configuration
-
----
-
-## Documentation Synchronization
-
-Instead of maintaining documentation manually, the project automatically synchronizes component files into the Docusaurus documentation.
-
-The synchronization process extracts:
-
-- Markdown documentation
-- Razor templates (.cshtml)
-- JavaScript
-- CSS / SCSS
-- Images & assets
-
-and generates the documentation inside:
-
-```text
-docs/components/
-```
-
-Run manually:
-
-```bash
-npm run presync
-```
-
-The synchronization process also runs automatically before:
-
-```bash
-npm start
-```
-
-and
-
-```bash
-npm run build
+│   ├── clientModules/        # Docusaurus client modules
+│   ├── components/Playground/ # Playground engine and component configs (work in progress)
+│   ├── css/                  # Global site styles
+│   ├── pages/                # Homepage and Components Gallery
+│   └── theme/                # Swizzled Docusaurus theme components
+├── static/                   # Static assets (logos, favicon, images)
+├── blog/                     # Blog content (blog is disabled in the site config)
+├── docusaurus.config.js
+├── sidebars.js
+└── package.json
 ```
 
 ---
 
-## Installation
+## Getting Started
+
+Requires Node.js 20 or later.
 
 ```bash
 npm install
+npm start          # start the local development server
+npm run build      # build the static site into build/
+npm run serve      # serve the production build locally
 ```
 
 ---
 
-## Local Development
+## Adding or Updating Component Documentation
 
-```bash
-npm start
-```
-
-Starts the local development server and automatically synchronizes all component documentation.
-
----
-
-## Production Build
-
-```bash
-npm run build
-```
-
-Builds the static documentation website for deployment.
+1. Edit or create `docs/components/<ComponentName>/index.mdx`.
+2. Add the page to the sidebar in `sidebars.js` (the sidebar is defined manually).
+3. Add or update the entry in the Components Gallery list in `src/pages/components/index.js`.
 
 ---
 
 ## Tech Stack
 
-- ASP.NET Core MVC
-- Razor Partial Views
-- Docusaurus
-- React
-- TypeScript
-- MDX
-- Sass
-- Prism
-- Node.js
-
----
-
-## Why This Project?
-
-Many web applications repeatedly implement the same UI patterns.
-
-This platform aims to solve that by providing:
-
-- A single source of truth for reusable components.
-- Consistent UI implementation across projects.
-- Faster onboarding for new developers.
-- Reduced duplicated code.
-- Easier maintenance.
-- Better developer experience.
-
----
-
-## Current Status
-
-The project is actively being developed.
-
-### Recently Added
-
-- Documentation synchronization system
-- Interactive documentation
-- Source code viewer
-- Component implementation guides
-
-### Currently Working On
-
-- Interactive Playground
-- Advanced AutoComplete component
-- Additional reusable MVC components
+- **Documented components:** ASP.NET Core MVC Razor partial views, CSS, JavaScript. Some components use third-party libraries such as Bootstrap, jQuery, CKEditor 5, or jTable; see each component page.
+- **Documentation site:** Docusaurus 3, React, MDX, Prism.
 
 ---
 
 ## Roadmap
 
 - [ ] Interactive Playground
-- [ ] AutoComplete Component
-- [ ] Additional UI Components
+- [ ] Migrate legacy `Momah` component identifiers to RazorKit naming
+- [ ] Additional UI components
 - [ ] Theme customization
 - [ ] Accessibility improvements
-- [ ] AI-powered component search
 - [ ] Versioned documentation
-- [ ] Component filtering & categories
-- [ ] Performance improvements
 
 ---
 
 ## Contributing
 
 Contributions are welcome.
-
-If you'd like to improve the documentation, fix bugs, or add new reusable components:
 
 1. Fork the repository.
 2. Create a feature branch.

@@ -6,20 +6,20 @@ import styles from "./index.module.css";
 export default function Home() {
   return (
     <Layout
-      title="Momah Components — ASP.NET MVC UI Library"
-      description="Enterprise ASP.NET MVC UI Components Library built for performance, Dark Mode, and developer experience."
+      title="RazorKit — Reusable UI Components for ASP.NET Core MVC"
+      description="Reusable UI components for ASP.NET Core MVC, delivered as Razor partial views with usage examples and source code."
     >
       {/* HERO SECTION */}
       <section className={styles.heroSection}>
         <div className={styles.heroContainer}>
           <div className={styles.heroContent}>
             <h1 className={styles.heroTitle}>
-              Enterprise ASP.NET MVC <br />
-              <span className={styles.heroGradient}>UI Components Library</span>
+              Reusable UI Components <br />
+              <span className={styles.heroGradient}>for ASP.NET Core MVC</span>
             </h1>
             <p className={styles.heroSubtitle}>
-              Clean, fast, and accessible ASP.NET MVC Razor components.
-              Engineered with native Razor helpers and zero-friction ViewModel bindings.
+              Razor partial views with their CSS and JavaScript,
+              documented with usage examples, parameters, and source code.
             </p>
 
             <div className={styles.ctaGroup}>
@@ -58,7 +58,7 @@ export default function Home() {
               </div>
               <pre className={styles.codeSnippetBody}>
                 <code>
-                  <span className={styles.codeComment}>@* Render Momah Badge *@</span>{'\n'}
+                  <span className={styles.codeComment}>@* Render RazorKit Badge *@</span>{'\n'}
                   <span className={styles.codeKeyword}>@await</span> <span className={styles.codeClass}>Html</span>.<span className={styles.codeMethod}>PartialAsync</span>(<span className={styles.codeString}>"UI/_Badge"</span>, <span className={styles.codeKeyword}>new</span> &#123;{'\n'}
                   {'    '}<span className={styles.codeProp}>label</span> = <span className={styles.codeString}>"Active Order"</span>,{'\n'}
                   {'    '}<span className={styles.codeProp}>bgColor</span> = <span className={styles.codeString}>"#e6f2f2"</span>,{'\n'}
@@ -77,7 +77,7 @@ export default function Home() {
       <section className={styles.statsSection}>
         <div className={styles.statsContainer}>
           <div className={styles.statItem}>
-            <span className={styles.statNumber}>19+</span>
+            <span className={styles.statNumber}>20+</span>
             <span className={styles.statLabel}>UI Components</span>
           </div>
           <div className={styles.statDivider} />
@@ -87,13 +87,13 @@ export default function Home() {
           </div>
           <div className={styles.statDivider} />
           <div className={styles.statItem}>
-            <span className={styles.statNumber}>100%</span>
-            <span className={styles.statLabel}>ASP.NET MVC Native</span>
+            <span className={styles.statNumber}>Razor</span>
+            <span className={styles.statLabel}>Partial Views</span>
           </div>
           <div className={styles.statDivider} />
           <div className={styles.statItem}>
-            <span className={styles.statNumber}>V 1.0</span>
-            <span className={styles.statLabel}>Production Ready</span>
+            <span className={styles.statNumber}>Early</span>
+            <span className={styles.statLabel}>Active Development</span>
           </div>
         </div>
       </section>
@@ -101,18 +101,18 @@ export default function Home() {
       {/* WHY MOMAH COMPONENTS */}
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Why Momah Components</h2>
+          <h2 className={styles.sectionTitle}>Why RazorKit</h2>
           <p className={styles.sectionSubtitle}>
-            Built specifically for enterprise ASP.NET MVC Razor workflows.
+            Built for Razor views in ASP.NET Core MVC applications.
           </p>
         </div>
 
         <div className={styles.pillarsGrid}>
           <div className={styles.pillarCard}>
             <div className={styles.pillarIcon}>⚡</div>
-            <h3 className={styles.pillarTitle}>Enterprise Ready</h3>
+            <h3 className={styles.pillarTitle}>Reusable</h3>
             <p className={styles.pillarDesc}>
-              Battle-tested UI components for mission-critical enterprise applications.
+              Common UI patterns packaged as partial views you can reuse across projects.
             </p>
           </div>
 
@@ -120,15 +120,15 @@ export default function Home() {
             <div className={styles.pillarIcon}>💎</div>
             <h3 className={styles.pillarTitle}>Razor Native</h3>
             <p className={styles.pillarDesc}>
-              Seamless HTML Helpers &amp; TagHelpers integration out of the box.
+              Rendered with Html.PartialAsync or the built-in &lt;partial&gt; tag helper.
             </p>
           </div>
 
           <div className={styles.pillarCard}>
             <div className={styles.pillarIcon}>🎯</div>
-            <h3 className={styles.pillarTitle}>ViewModel Friendly</h3>
+            <h3 className={styles.pillarTitle}>Documented</h3>
             <p className={styles.pillarDesc}>
-              Direct data-binding compatibility with standard C# ViewModels.
+              Every component page lists its parameters with usage examples and source code.
             </p>
           </div>
 
@@ -147,7 +147,7 @@ export default function Home() {
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Popular Components</h2>
           <p className={styles.sectionSubtitle}>
-            Explore our top production-ready UI components.
+            Explore some of the documented components.
           </p>
         </div>
 

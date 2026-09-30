@@ -3,15 +3,15 @@ import { themes as prismThemes } from "prism-react-renderer";
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: "Momah Components",
-  tagline: "Enterprise ASP.NET MVC UI Components Library",
+  title: "RazorKit",
+  tagline: "Reusable UI Components for ASP.NET Core MVC",
   favicon: "img/favicon.svg",
 
   future: {
     v4: true,
   },
 
-  url: "https://momah-components.example.com",
+  url: "https://razor-kit.example.com",
   baseUrl: "/",
   clientModules: ["./src/clientModules/suppressResizeObserver.js"],
 
@@ -52,9 +52,9 @@ const config = {
         respectPrefersColorScheme: true,
       },
       navbar: {
-        title: "Momah Components",
+        title: "RazorKit",
         logo: {
-          alt: "Momah Components Logo",
+          alt: "RazorKit Logo",
           src: "img/logo.svg",
         },
         items: [
@@ -70,7 +70,7 @@ const config = {
             position: "left",
           },
           {
-            href: "https://github.com/bahaayoussof/custom-components",
+            href: "https://github.com/bahaayoussof/razor-kit",
             label: "GitHub",
             position: "right",
           },
@@ -78,7 +78,7 @@ const config = {
       },
       footer: {
         style: "dark",
-        copyright: `© ${new Date().getFullYear()} Momah Components. Crafted by <a style={{textDecoration: none}} href="https://www.linkedin.com/in/bahaayoussof/" target="_blank" rel="noopener noreferrer">Bahaa Youssof</a>.`,
+        copyright: `© ${new Date().getFullYear()} RazorKit. Crafted by <a style={{textDecoration: none}} href="https://www.linkedin.com/in/bahaayoussof/" target="_blank" rel="noopener noreferrer">Bahaa Youssof</a>.`,
       },
       prism: {
         theme: prismThemes.github,

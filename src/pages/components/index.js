@@ -217,7 +217,7 @@ export default function ComponentsGallery() {
 
   return (
     <Layout
-      title="Components Gallery — Momah UI Library"
+      title="Components Gallery — RazorKit"
       description="Browse all 19+ ASP.NET MVC UI components with live specs and feature badges."
     >
       <div

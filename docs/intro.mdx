@@ -3,72 +3,74 @@ sidebar_position: 1
 slug: /intro
 ---
 
-# Momah UI Components
+# RazorKit
 
-Welcome to the **Momah UI Components** documentation. Momah Components is a production-grade library of enterprise UI components engineered specifically for ASP.NET MVC and ASP.NET Core applications.
+Welcome to the **RazorKit** documentation. RazorKit is a collection of reusable UI components for ASP.NET Core MVC, delivered as Razor partial views with their CSS and JavaScript.
 
 ---
 
 ## Key Features
 
-- ⚡ **ASP.NET MVC Native**: Direct Razor `@Html.Momah()` HtmlHelpers and `<momah-*>` TagHelpers with strong C# ViewModel lambda bindings.
+- ⚡ **Razor partial views**: Components are rendered with `@await Html.PartialAsync("UI/_Name", model)` or the built-in `<partial name="UI/_Name" />` tag helper.
+- 🧾 **Documented parameters**: Each component page lists its parameters and includes usage examples and source code.
+- 📊 **Client-side grid**: `MomahTable` is a JavaScript data grid initialized with `MomahTable.render(...)`.
 
 ---
 
 ## Component Architecture & Structure
 
-Every component is self-contained and offers unified client/server interaction:
+Each component typically consists of:
 
-1. **Razor Markup (`_*.cshtml`)**: Clean, accessible markup rendered directly by ASP.NET View Engine.
-2. **C# Helper API**: Fluent builder syntax for ViewModel property binding, validation rules, and configuration hooks.
-3. **Styles & Scripts**: Modular CSS variables and zero-dependency Vanilla JS event handling.
+1. **Razor Markup (`_*.cshtml`)**: A partial view rendered by the ASP.NET Core view engine.
+2. **Model parameters**: Configuration passed as the partial view model, usually an anonymous object. See each component's parameter table.
+3. **Styles & Scripts**: Component CSS and JavaScript. Some components rely on third-party libraries such as Bootstrap, jQuery, CKEditor 5, or jTable; check each component page for its requirements.
 
 ---
 
 ## Component Library Overview
 
 ### 📝 Form Controls
-High-performance inputs built for data entry, validation, and complex user selection.
+Inputs for data entry, validation, and user selection.
 
-| Component | Description | Status |
-|---|---|---|
-| **DualDate** | Dual Hijri & Gregorian date selector with custom date constraints. | `NEW` |
-| **DateInput** | Standard single date picker with culture formatting. | `STABLE` |
-| **DateRange** | Preset range date selector (Today, Last 7 Days, Month to Date). | `STABLE` |
-| **InputField** | Formatted text input with icon slots and validation state. | `STABLE` |
-| **AutoComplete** | Enterprise-grade AutoComplete & Search Select component with local/remote sources. | `NEW` |
-| **SelectInput** | Searchable dropdown selector with option grouping. | `STABLE` |
-| **MomahSelect** | Custom styled select control with dynamic AJAX data loading. | `STABLE` |
-| **ChipSelect** | Multi-select dropdown with dismissible chips and search. | `NEW` |
-| **FileUpload** | Drag-and-drop file uploader with progress tracking. | `STABLE` |
-| **AttachBox** | Compact file attachment container widget. | `STABLE` |
-| **TextArea** | Multi-line text input with auto-height and character counter. | `STABLE` |
-| **CkEditor** | Rich text WYSIWYG editor wrapper for Razor views. | `STABLE` |
+| Component | Description |
+|---|---|
+| **DualDate** | Dual Hijri & Gregorian date selector with custom date constraints. |
+| **DateInput** | Standard single date picker with culture formatting. |
+| **DateRange** | Preset range date selector (Today, Last 7 Days, Month to Date). |
+| **InputField** | Formatted text input with icon slots and validation state. |
+| **AutoComplete** | AutoComplete & Search Select component with local/remote sources. |
+| **SelectInput** | Searchable dropdown selector with option grouping. |
+| **MomahSelect** | Custom styled select control with dynamic AJAX data loading. |
+| **ChipSelect** | Multi-select dropdown with dismissible chips and search. |
+| **FileUpload** | Drag-and-drop file uploader with progress tracking. |
+| **AttachBox** | Compact file attachment container widget. |
+| **TextArea** | Multi-line text input with auto-height and character counter. |
+| **CkEditor** | Rich text WYSIWYG editor wrapper for Razor views. |
 
 ### 📊 Data Display
 Components designed for rendering structured server data cleanly.
 
-| Component | Description | Status |
-|---|---|---|
-| **MomahTable** | Server-side datagrid with sorting, filtering, and pagination. | `UPDATED` |
-| **Badge** | Status tag and category badge component. | `STABLE` |
-| **AttachmentCard** | Document preview card with download and deletion actions. | `STABLE` |
+| Component | Description |
+|---|---|
+| **MomahTable** | Server-side datagrid with sorting, filtering, and pagination. |
+| **Badge** | Status tag and category badge component. |
+| **AttachmentCard** | Document preview card with download and deletion actions. |
 
 ### 💬 Overlays & Feedback
 Popovers, alerts, and modal dialogs for contextual user interaction.
 
-| Component | Description | Status |
-|---|---|---|
-| **Tooltip** | Contextual popover tooltip with smooth micro-animations. | `STABLE` |
-| **LabelTip** | Inline form label hint helper icon. | `STABLE` |
-| **Banner** | Full-width system notification alert banner. | `STABLE` |
-| **Notification** | Toast notification manager engine. | `STABLE` |
-| **StatusModal** | State feedback modal dialog with custom action buttons. | `STABLE` |
+| Component | Description |
+|---|---|
+| **Tooltip** | Contextual popover tooltip with smooth micro-animations. |
+| **LabelTip** | Inline form label hint helper icon. |
+| **Banner** | Full-width system notification alert banner. |
+| **Notification** | Toast notification manager engine. |
+| **StatusModal** | State feedback modal dialog with custom action buttons. |
 
 ### 🧩 Navigation
-| Component | Description | Status |
-|---|---|---|
-| **Breadcrumb** | Semantic breadcrumb trail component. | `STABLE` |
+| Component | Description |
+|---|---|
+| **Breadcrumb** | Semantic breadcrumb trail component. |
 
 ---
 
@@ -77,14 +79,14 @@ Popovers, alerts, and modal dialogs for contextual user interaction.
 Render a component inside any Razor View (`.cshtml`):
 
 ```cshtml
-@model UserProfileViewModel
-
-<!-- DualDate Picker Example -->
-@Html.Momah().DualDateFor(m => m.BirthDate)
-    .SetLabel("Date of Birth")
-    .SetMode(DualDateMode.HijriGregorian)
-    .SetRtl(true)
-    .Render()
+<partial name="UI/_DualDate" model='new {
+    id          = "editor1",
+    label       = "وصف الحالة",
+    required    = true,
+    placeholder = "",
+    minDate     = "today",
+    maxDate     = "+2m"
+}' />
 ```
 
-Explore components from the **Components** category in the left sidebar or browse the [Components Gallery](/components)!
+Explore components from the categories in the left sidebar or browse the [Components Gallery](/components).
