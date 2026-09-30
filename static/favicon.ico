@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="momahGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+    <linearGradient id="momahLayer" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#e0f2fe" stop-opacity="0.85" />
+    </linearGradient>
+    <filter id="momahGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#2563eb" flood-opacity="0.35" />
+    </filter>
+  </defs>
+  
+  <!-- Outer Rounded Shield / Component Container -->
+  <rect x="8" y="8" width="84" height="84" rx="24" fill="url(#momahGrad)" filter="url(#momahGlow)" />
+  
+  <!-- Stylized Modular "M" UI Blocks -->
+  <g fill="url(#momahLayer)">
+    <!-- Left Pillar Block -->
+    <rect x="24" y="28" width="14" height="44" rx="7" />
+    
+    <!-- Right Pillar Block -->
+    <rect x="62" y="28" width="14" height="44" rx="7" />
+    
+    <!-- Middle Chevron / Node Block -->
+    <path d="M 38 34 L 50 48 L 62 34 C 64 32 67 34 66 37 L 53 58 C 51 61 49 61 47 58 L 34 37 C 33 34 36 32 38 34 Z" />
+  </g>
+  
+  <!-- Subtle UI Component Accent Dot -->
+  <circle cx="50" cy="26" r="4.5" fill="#ffffff" />
+</svg>
