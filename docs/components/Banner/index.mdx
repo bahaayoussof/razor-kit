@@ -20,11 +20,13 @@ The Banner component is used to display important information or notifications w
 
 ## Usage
 
-To use the banner, include the partial view in your page and provide the required model properties using a C# Tuple.
+To use the banner, include the partial view in your page and pass a C# tuple as the model.
+
+The partial's model type is `(string? Icon, string Title, string Content, string? TitleColor, bool IsSmall)`, so all five elements must be supplied, in this order. Element names are optional; the position determines the meaning. To leave a value empty, pass `""`. A bare `null` inside a tuple literal does not compile when passed as the model; use `(string?)null` if you need an explicit null.
 
 ### Basic Example
 ```cshtml
-<partial name="UI/_Banner" model='(Icon: "bi-info-circle", Title: "Notice", Content: "This is a banner message.", TitleColor: null, IsSmall: false)' />
+<partial name="UI/_Banner" model='(Icon: "bi-info-circle", Title: "Notice", Content: "This is a banner message.", TitleColor: "", IsSmall: false)' />
 ```
 
 ### Advanced Example (with Raw HTML Icon)
@@ -50,24 +52,44 @@ or
 
 ## Properties
 
-| Property Name | Type | Description | Default Value |
+All five tuple elements must be passed. The last column describes what happens when a value is empty.
+
+| Property Name | Type | Description | When empty / `null` |
 | :--- | :--- | :--- | :--- |
-| `Icon` | `string?` | The icon to display. Supports Bootstrap Icon classes (e.g., `bi-gear`) or raw HTML (e.g., `<img>` or `&lt;svg>`). If raw HTML contains `~/`, it will be automatically resolved to the root path. | `null` (No icon shown) |
-| `Title` | `string` | The bold heading text displayed at the top of the banner. | `null` / Empty (Row hidden if empty) |
-| `Content` | `string` | The main body text/description of the banner. | **Required** |
-| `TitleColor` | `string?` | A custom hex color code for the title and primary icon. | `"#1F2937"` |
-| `IsSmall` | `bool` | If set to `true`, applies a `small` utility class to the content text. | `false` |
+| `Icon` | `string?` | The icon to display. If the trimmed value starts with `<`, it is rendered as raw HTML (e.g., `<img>` or `&lt;svg>`) and every `~/` in it is replaced with the application base path via `Url.Content`. Otherwise it is rendered as `<i class="bi {Icon}">` (e.g., `bi-gear`). | No icon is rendered. |
+| `Title` | `string` | Heading text rendered in an `<h6>` above the content. HTML-encoded. | The title row is not rendered. |
+| `Content` | `string` | The body text of the banner. HTML-encoded, so markup is shown as text. | An empty content line is rendered. |
+| `TitleColor` | `string?` | CSS color for the title, set through the `--banner-title-color` variable. It does not change the icon color (always `#00A79D`) or the content text (Bootstrap `text-muted`). | `"#1F2937"` |
+| `IsSmall` | `bool` | If `true`, adds Bootstrap's `small` class to the content text. | Not nullable; pass `false` for normal size. |
+
+### Raw HTML and Encoding
+
+- A raw HTML `Icon` is output with `Html.Raw` and is **not encoded**. Never pass user-supplied content as `Icon`; it would allow HTML/script injection.
+- `TitleColor` is written into an inline `style` attribute. Only pass trusted color values.
+- `Title` and `Content` use normal Razor encoding.
 
 ## Visual Features
 - **Background**: Soft teal background (`#00A79D0D`) with a matching border.
 - **Decorative Element**: Includes a palm tree background image (`palm.svg`) positioned on the left side of the banner.
-- **Icon Styling**: Icons are automatically wrapped in a circular teal background.
-- **Responsive**: Flex-based layout that aligns items centrally with a gap.
+- **Icon Styling**: Icons are wrapped in a 44px circular background (`#E0F2F1`) with icon color `#00A79D`; `<img>` icons are sized to 24px.
+- **Layout**: Flex layout that vertically centers the icon and text with a gap. There is no breakpoint-specific behavior.
+- **Spacing**: The banner always has Bootstrap's `mb-3` bottom margin.
+- **Styles**: The partial outputs its own `<style>` block each time it is rendered. The class names it defines (`.info-banner`, `.palm-bg`, `.banner-icon-wrapper`, `.banner-content-wrapper`, `.info-banner-content`) are global and not scoped to the component.
+
+## Accessibility
+- The banner has no ARIA role, so screen readers do not announce it as an alert or status message.
+- The title is always an `<h6>`; check that this fits the heading structure of your page.
+- The decorative `palm.svg` image has no `alt` attribute.
+- Icons are rendered without `aria-hidden` or a text alternative.
+
+## RTL
+- The icon and text follow the page's text direction because they use a flex layout.
+- The palm decoration is always positioned with `left: 0`, in both LTR and RTL pages.
 
 ## Dependencies
 - **Bootstrap Icons**: Required for class-based icons (e.g., `bi-info-circle`).
-- **Bootstrap 5**: Uses utility classes like `mb-3`, `d-flex`, `align-items-center`, `gap-3`, and `fw-bold`.
-- **Assets**: requires `~/assets/images/palm.svg` for the background decoration.
+- **Bootstrap 5**: Uses utility classes `mb-3`, `d-flex`, `align-items-center`, `gap-3`, `fw-bold`, `mb-1`, `text-muted`, and `small`.
+- **Assets**: requires `~/assets/images/palm.svg` for the background decoration. The path is fixed in the partial and cannot be configured.
 
 </TabItem>
 

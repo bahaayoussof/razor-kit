@@ -160,9 +160,8 @@ const COMPONENTS_DATA = [
     id: "Banner",
     name: "Banner",
     category: "Overlays & Feedback",
-    desc: "Full-width system alert banner.",
-    status: "STABLE",
-    aria: true,
+    desc: "Informational banner with an optional icon and title.",
+    aria: false,
     path: "/docs/components/Banner",
   },
   {
