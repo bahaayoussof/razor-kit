@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 
 <Tabs>
 <TabItem value="guide" label="Guide" default>
-The `_Notification.cshtml` component is a reusable notification/alert box component that displays an icon, title, and content message.
+The `_Notification.cshtml` partial view renders a static notice box with an icon, a title, and a message. It has no JavaScript: it is not a toast and cannot be shown, hidden, or dismissed by the component itself.
 
 ## UI Preview
 
@@ -19,17 +19,20 @@ The `_Notification.cshtml` component is a reusable notification/alert box compon
 ---
 
 ## Parameters
-The component accepts a tuple with the following parameters:
 
-1. **Icon** (string?, optional): SVG HTML string for the icon. If not provided, a default info icon will be displayed.
-2. **Title** (string, required): The title text displayed in bold.
-3. **Content** (string, required): The main content/message text.
-4. **TitleColor** (string?, optional): Color for the title text. Defaults to `#00A79D` (teal).
-5. **BorderColor** (string?, optional): Color for the right border accent. Defaults to `#00A79D` (teal).
+The model type is the tuple `(string? Icon, string Title, string Content, string? TitleColor, string? BorderColor)`. All five elements must be passed, in this order; use `(string?)null` for the values you want to leave at their defaults (a bare `null` does not compile in a tuple literal passed as the model).
+
+1. **Icon** (`string?`): Raw HTML (e.g. an SVG) for the icon. If `null` or empty, a default info icon is displayed.
+2. **Title** (`string`): The title text, displayed in bold in an `<h6>`. Omitted when empty.
+3. **Content** (`string`): The message text. Omitted when empty.
+4. **TitleColor** (`string?`): Color of the title and of the default icon. `null` means `#00A79D` (teal).
+5. **BorderColor** (`string?`): Color of the 6px accent border on the right side. `null` means `#00A79D` (teal).
+
+An empty string for `TitleColor` or `BorderColor` is not replaced by the default; it produces an empty CSS color value.
 
 ## Usage Examples
 
-### Basic Usage (Required Parameters Only)
+### Basic Usage (Default Icon and Colors)
 ```csharp
 @await Html.PartialAsync("UI/_Notification", (
     Icon: (string?)null,
@@ -88,19 +91,23 @@ The component accepts a tuple with the following parameters:
 ```
 
 ## Styling
-The component uses inline styles and Bootstrap classes:
+The component uses inline styles and Bootstrap 5 classes:
 - Background: White (`bg-white`)
-- Border: 1px solid `#e4e7ea` with a 6px right border accent
+- Border: 1px solid `#e4e7ea` with a 6px accent border on the **right** side
+- Text color: `#374151` (the title uses `TitleColor`)
 - Padding: `p-3`
 - Border radius: `rounded`
-- Flexbox layout with gap between icon and content
+- Flexbox layout with a gap between icon and content (`d-flex`, `gap-2`)
 
 ## Notes
-- If `Icon` is null or empty, a default info icon will be displayed
-- The default icon color matches the `TitleColor` parameter
-- The component is RTL-friendly (right-to-left layout)
-- All text colors default to `#00A79D` (teal) if not specified
+- If `Icon` is null or empty, a default info icon is displayed; its color matches `TitleColor`.
+- The accent border is always on the physical right side (`border-right`), which suits right-to-left layouts; it does not move in left-to-right pages.
+- The component has no ARIA role (it is not announced as an alert or status), the title is always an `<h6>`, and the default icon has no `aria-hidden` attribute.
 
+## Security Notes
+- `Icon` is written with `Html.Raw` and is not encoded. Never pass user-supplied content as `Icon`.
+- `TitleColor` and `BorderColor` are written into inline `style` attributes; only pass trusted color values.
+- `Title` and `Content` use normal Razor encoding.
 
 </TabItem>
 

@@ -8,6 +8,8 @@ import TabItem from '@theme/TabItem';
 
 <Tabs>
 <TabItem value="guide" label="Guide" default>
+The `_StatusModal.cshtml` partial view renders one Bootstrap modal and defines a global `showStatusModal(options)` function that fills it with an icon, a title, an optional message, and optional confirm/cancel buttons.
+
 ## UI Preview
 
 | State   | Preview             |
@@ -22,17 +24,19 @@ import TabItem from '@theme/TabItem';
 
 ### 1. Include the Partial in Your View
 
-Add this line anywhere in your view (typically at the bottom before closing tags):
+The partial is located at `Views/Shared/UI/_StatusModal.cshtml`. Add it once anywhere in your view (typically at the bottom):
 
 ```cshtml
-@await Html.PartialAsync("_StatusModal")
+@await Html.PartialAsync("UI/_StatusModal")
 ```
 
-Or using the shorter syntax:
+Or using the tag helper:
 
 ```cshtml
-<partial name="_StatusModal" />
+<partial name="UI/_StatusModal" />
 ```
+
+The modal uses fixed element IDs (`statusModal`, `modalTitle`, `modalMessage`, `modalActionBtn`, `iconContainer`, `actionsContainer`), so render it only once per page. Note that AttachBox and AttachmentCard render this partial themselves, once per instance.
 
 ### 2. Call the Modal from JavaScript
 
@@ -62,15 +66,22 @@ showStatusModal({
 
 | Option             | Type     | Default   | Description                                     |
 | ------------------ | -------- | --------- | ----------------------------------------------- |
-| `type`             | string   | 'success' | Modal type: 'success', 'info', 'error'|
-| `title`            | string   | 'empty string'| Main title text [bold text]|
-| `titleColor`       | string   | '#212529bf'| Title color|
-| `message`          | string   | 'empty string'| Optional message below title|
-| `messageStyle`     | object   | &#123;&#125;        | Optional message style|
-| `showActionButton` | boolean  | false     | Show/hide the action button|
-| `actionButtonText` | string   | 'تأكيد'   | Text for action button|
-| `onConfirm`        | function | null      | Callback when confirm button is clicked|
-| `onCancel`         | function | null      | Callback when [cancel, close] button is clicked|
+| `type`             | string   | `'success'` | Icon and button layout: `'success'`, `'info'`, `'error'`, `'warning'`, `'return'`, `'delete'`, `'transfer'`, `'send'`. Unknown values use the success icon. |
+| `title`            | string   | `''`      | Main title text (bold), set as text (HTML is not interpreted). |
+| `titleColor`       | string   | `'#212529bf'` | Title color |
+| `message`          | string   | `''`      | Optional message below the title, set as text. Hidden when empty. |
+| `messageStyle`     | object   | `{}`      | CSS properties applied to the message with jQuery `.css()`. `color` defaults to `#212529bf`. |
+| `size`             | string   | `'lg'`    | Bootstrap modal size: `'sm'`, `'lg'`, `'xl'`, or `'md'` (Bootstrap's default width). |
+| `showActionButton` | boolean  | `false`   | Show/hide the action (confirm) button |
+| `actionButtonText` | string   | `'تأكيد'` | Text for the action button |
+| `showCancelButton` | boolean  | `true`    | Show/hide the footer cancel button |
+| `cancelButtonText` | string   | `'إلغاء'` | Text for the footer cancel button |
+| `onConfirm`        | function | `null`    | Called after the modal is hidden when the action button is clicked |
+| `onCancel`         | function | `null`    | Called when the footer cancel button or the close (×) button is clicked |
+
+For `success` and `error`, the buttons are aligned to the end; for the other types they are spread apart (`justify-content-between`).
+
+`onCancel` is not called when the modal is closed with `Escape` or by clicking the backdrop.
 
 ## Complete Example in a View
 
@@ -84,7 +95,7 @@ showStatusModal({
 </div>
 
 @* Include the modal partial *@
-<partial name="_GenericStatusModal" />
+<partial name="UI/_StatusModal" />
 
 @section Scripts {
 
@@ -111,15 +122,28 @@ showStatusModal({
 }
 ```
 
-| Parameter | Type | Description | Default Value |
-| --- | --- | --- | --- |
-| type | string | The type of the modal | 'success' |
-| title | string | The title of the modal | 'empty string' |
-| message | string | The message of the modal | 'empty string' |
-| showActionButton | boolean | Whether to show the action button or not | false |
-| actionButtonText | string | The text of the action button | 'تأكيد' |
-| onConfirm | function | The callback function when the confirm button is clicked | null |
-| onCancel | function | The callback function when the cancel button is clicked | null |
+## Dependencies
+
+- **jQuery** — `showStatusModal` uses `$` when it is called.
+- **Bootstrap 5 JS with its jQuery interface** — the modal is opened and closed with `$modal.modal('show' | 'hide')`. Bootstrap 5 only registers this jQuery plugin if jQuery is loaded **before** Bootstrap.
+- **Bootstrap 5 CSS** for the modal and button classes.
+
+The script defines `showStatusModal` only the first time the partial is rendered on a page (`window._statusModalInitialized`).
+
+## Accessibility
+
+- The modal uses Bootstrap's modal behavior (focus management, `Escape` to close).
+- The modal's `aria-labelledby` points to `statusModalLabel`, but no element has that ID (the title's ID is `modalTitle`), so the dialog has no accessible name.
+- The close button has `aria-label="Close"`. The icons have no text alternative.
+
+## Known Limitations
+
+- The `error` icon's SVG has a malformed closing tag (`</sv g>`).
+- Rendering the partial more than once creates duplicate element IDs; `showStatusModal` always uses the first modal in the page.
+
+## Security Notes
+
+`title`, `message`, and the button texts are inserted as text, not HTML.
 
 </TabItem>
 

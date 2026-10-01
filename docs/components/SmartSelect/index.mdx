@@ -1,6 +1,6 @@
 ---
-sidebar_label: "MomahSelect"
-title: "MomahSelect"
+sidebar_label: "SmartSelect"
+title: "SmartSelect"
 ---
 
 import Tabs from '@theme/Tabs';
@@ -8,7 +8,11 @@ import TabItem from '@theme/TabItem';
 
 <Tabs>
 <TabItem value="guide" label="Guide" default>
-The `_MomahSelect.cshtml` is a custom, reusable dropdown component designed to replace the standard HTML `&lt;select>`. It supports both single and multiple selections, searching/filtering, progressive enhancement, programmatic updates, and custom callbacks.
+The `_SmartSelect.cshtml` partial view renders a custom dropdown on top of a hidden native `<select>`. It supports single and multiple selection, an optional search box, an optional clear button, a JavaScript API for changing options and values, and a change callback.
+
+:::note
+This component was previously named `MomahSelect` (`_MomahSelect.cshtml`, `UI/_MomahSelect`). It was renamed to `SmartSelect` without a compatibility alias; update existing views to `UI/_SmartSelect`.
+:::
 
 ## UI Preview
 
@@ -21,25 +25,31 @@ The `_MomahSelect.cshtml` is a custom, reusable dropdown component designed to r
 
 ---
 
+## Location
+
+`Views/Shared/UI/_SmartSelect.cshtml`
+
 ## Properties
 
-The component accepts properties ideally via an `anonymous object`. It also provides backward compatibility for Tuples.
+The component accepts an anonymous object (property names are case-insensitive) or a tuple.
 
 ### Configuration Properties
 
 | Property | Type | Default Value | Description |
 | :--- | :--- | :--- | :--- |
-| `Id` | `string` | `""` | **Required.** A unique identifier for the component. Used to generate element IDs. |
-| `Options` | `List&lt;(string Value, string Text)>`| `null` | The list of options to display in the dropdown. |
-| `Label` | `string` | `""` | The label text displayed above the input. If empty, the `&lt;label>` element is omitted. |
-| `Required`| `bool` | `false` | Marks the input as required. Displays a `*` next to the label and enables validation logic. |
-| `Placeholder`| `string` | `""` | The placeholder text to display when no option is chosen. |
-| `Type` | `string` | `"single"` | Determines the selection mode. Accepts `"single"` or `"multiple"`. |
-| `Filter` | `string` | `null` | Enables the search/filter input. Any non-null value activates it. *Note: Multi-select ALWAYS has search enabled.*|
-| `Clear` | `string` | `null` | Enables a clear ('✕') button upon selection. Any non-null value enables it. |
-| `OnChange`| `string` | `null` | The name of a global JavaScript function to call when the selection changes. Receives `(selectedValue, id)`. |
+| `Id` | `string` | `""` | **Required.** Used as the native select's `id` and `name`, and to build the other element IDs. It is used in jQuery `#id` selectors, so it should not contain CSS special characters. |
+| `Options` | `List<(string Value, string Text)>` | `null` | The options. In the anonymous-object form, a value of any other type (for example an array or `List<SelectListItem>`) is silently ignored and no options are rendered. |
+| `Label` | `string` | `""` | The label text displayed above the input. If empty, the `<label>` element is omitted and the wrapper gets a `mt-3` top margin. |
+| `Required`| `bool` | `false` | Displays a `*` next to the label, adds the `required` attribute to the native select, and enables validation. Converted with `Convert.ToBoolean`, so `"true"` also works. |
+| `Placeholder`| `string` | `""` | Text shown when nothing is selected. In single mode it is also the text of the empty first option. |
+| `Type` | `string` | `"single"` | `"multiple"` (case-insensitive) for multiple selection; any other value means single. |
+| `Filter` | `string` | `null` | Shows a search box in the dropdown. Any non-empty string enables it, including `"false"`. |
+| `Clear` | `string` | `null` | Shows a clear (`✕`) button when a value is selected. Any non-empty string enables it, including `"false"`. |
+| `OnChange`| `string` | `null` | The name of a global JavaScript function to call when the user changes the selection. Receives `(value, id)`, where `value` is a string in single mode and an array of strings in multiple mode. |
 
-*(Note: If passing a Tuple instead of an anonymous object, use this exact order: `(Label, Required, Id, Placeholder, Options, Type, Filter, Clear, OnChange)`)*
+*(Note: If passing a tuple instead of an anonymous object, use this exact order: `(Label, Required, Id, Placeholder, Options, Type, Filter, Clear, OnChange)`. At least the first five elements are required, `Required` must be a `bool`, and `Options` must be a `List<(string, string)>` or `null`; other types throw an exception.)*
+
+The partial has no property for a pre-selected value. Use `setSelectValue` after the partial has rendered (see below).
 
 ---
 
@@ -49,7 +59,7 @@ The component accepts properties ideally via an `anonymous object`. It also prov
 A standard single-select dropdown without search or clearing.
 
 ```html
-@await Html.PartialAsync("UI/_MomahSelect", new
+@await Html.PartialAsync("UI/_SmartSelect", new
 {
     Id = "UserRole",
     Label = "Select Role",
@@ -64,11 +74,11 @@ A standard single-select dropdown without search or clearing.
 })
 ```
 
-### 2. Multi-Select with Search & Clear Button
-Use `Type = "multiple"` to show a multiple layout with checkboxes and tag chips. Multiselect handles internal searching automatically.
+### 2. Multi-Select with Clear Button
+Use `Type = "multiple"` to show checkboxes, chips for the selected items (up to 3, then `...+N`), and a "select all" checkbox. Add `Filter` to also show a search box.
 
 ```html
-@await Html.PartialAsync("UI/_MomahSelect", new
+@await Html.PartialAsync("UI/_SmartSelect", new
 {
     Id = "AssignedServices",
     Label = "Assign Services",
@@ -83,18 +93,18 @@ Use `Type = "multiple"` to show a multiple layout with checkboxes and tag chips.
         ("srv3", "Service 3")
     }
 })
-<!-- or -->
+<!-- or, with search (selectFieldOptions must be a List<(string Value, string Text)>) -->
 
-<partial name="UI/_MomahSelect"
+<partial name="UI/_SmartSelect"
 	model='new { Label = "multi select + filter", Required = false, Id = "my-multi-select-2", Placeholder = "multi select مع فلتر", Options = selectFieldOptions, Type = "multiple", Filter = "filter", Clear = "clear" }' />
 
 ```
 
 ### 3. Single Select with Filter & OnChange Callback
-Activating the search bar for a single selection and reacting via a Javascript callback.
+Activating the search box for a single selection and reacting via a JavaScript callback.
 
 ```html
-@await Html.PartialAsync("UI/_MomahSelect", new
+@await Html.PartialAsync("UI/_SmartSelect", new
 {
     Id = "CitySelect",
     Label = "City",
@@ -117,35 +127,53 @@ Activating the search bar for a single selection and reacting via a Javascript c
 
 ---
 
+## Behavior
+
+- Clicking the trigger opens the dropdown and closes any other open instance. On first open, the dropdown element is moved to `<body>` and positioned under the trigger; it is repositioned on window resize and scroll.
+- Search (when `Filter` is set) is a case-insensitive substring match on the option text. If nothing matches, `لا توجد نتائج` is shown.
+- In multiple mode, "select all" toggles all options that are currently visible (after filtering).
+- The selected value(s) are written to the hidden native `<select name="{Id}">`, which is what the form submits.
+- `OnChange` is called when the user selects, deselects, clears, removes a chip, or uses "select all". It is **not** called by `setSelectValue` or `setSelectOption`.
+
+---
+
 ## JavaScript API
 
-The component exposes a global JavaScript API for fetching data and programmatic control.
+The inline script runs as soon as the partial is rendered, so these functions are available immediately after it.
 
 ### Getting the Selected Value
 ```javascript
-// Returns a string (or null/empty) for 'single'
-// Returns an array of strings for 'multiple'
+// Single: returns the value string, or null when nothing is selected
+// Multiple: returns an array of strings ([] when nothing is selected)
 var roleVal = window.getSelectedValue("UserRole");
 ```
 
 ### Setting the Selected Value
 ```javascript
-// For single select (use the value of the option)
+// For single select (use the value of the option; an array uses its first element)
 window.setSelectValue("UserRole", "2");
 
-// For multi-select (accepts an array of string values)
+// For multi-select (must be an array of values)
 window.setSelectValue("AssignedServices", ["srv1", "srv2"]);
 ```
 
+Values that do not match an existing option are ignored (in single mode, a non-matching value clears the selection). Setting a value clears the validation error.
+
 ### Updating Options Dynamically (e.g., via AJAX)
 ```javascript
-// Replaces the entire list of options and clears the ongoing selection
+// Replaces the entire list of options and clears the current selection
 var newOptions = [
     { value: "4", text: "Editor" },
     { value: "5", text: "Viewer" }
 ];
 window.setSelectOption("UserRole", newOptions);
 ```
+
+:::warning
+`setSelectOption` inserts `value` and `text` into the dropdown's HTML **without escaping**. Escape any values that come from users or external APIs before passing them.
+:::
+
+Per-instance versions also exist: `window.setSelectOptions_{Id}(options)` and `window.setSelectValues_{Id}(value)`.
 
 ### Programmatic Validation
 ```javascript
@@ -154,10 +182,46 @@ window.setSelectOption("UserRole", newOptions);
 var isValid = window.validateSelect_UserRole();
 ```
 
+---
+
+## Validation
+
+When `Required` is `true`:
+
+- On form submission with no value, submission is prevented, the trigger gets a red border, the error message `{Label} مطلوب` is shown, and the dropdown opens if this is the first invalid field.
+- The browser's native `invalid` event on the hidden select is intercepted, so the native validation bubble is not shown.
+- Selecting a value clears the error.
+
+---
+
+## Dependencies
+
+- jQuery, loaded before the partial (the inline script uses it immediately)
+- Bootstrap 5 CSS (`form-label`, `text-danger`, `small`, `mt-1`, `mt-3`)
+- The label also uses a `text-gray-700` class, which is not part of Bootstrap 5.
+
+The partial outputs its `<style>` block every time it is rendered. The class names it styles (`.cs-*`, `.ss-*`, `.ms-*`, `.select-input-wrapper`) are global.
+
+## Accessibility
+
+- The custom trigger and options are `<div>` elements without ARIA roles, labels, or keyboard handling; the dropdown can only be operated with a mouse or touch.
+- The visually hidden native `<select>` remains in the keyboard tab order. Changing it with the keyboard updates the submitted value but not the custom display.
+- The `<label>` points to the hidden native select.
+
+## RTL
+
+The component is not direction-aware: the chevron, search icon, and chip spacing use fixed physical positions. Built-in texts are Arabic (`بحث...`, `مسح`, `تحديد الكل`, `لا توجد نتائج`).
+
+## Security Notes
+
+- Server-rendered labels, placeholders, and options use normal Razor encoding.
+- In multiple mode, chip labels are read from the option text and inserted back into the page as HTML. Option text that contains HTML markup (even when it was encoded by Razor) is rendered as live HTML in the chip. Do not use untrusted option text with `Type = "multiple"`.
+- Options added with `setSelectOption` are not escaped (see the warning above).
+
 </TabItem>
 
 
-<TabItem value="_MomahSelect.cshtml" label="_MomahSelect.cshtml">
+<TabItem value="_SmartSelect.cshtml" label="_SmartSelect.cshtml">
 
 ```cshtml
 @using System.Runtime.CompilerServices

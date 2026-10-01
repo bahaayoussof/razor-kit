@@ -1,5 +1,5 @@
-export const MomahTable = {
-  title: "MomahTable",
+export const DataTable = {
+  title: "DataTable",
   props: [
     {
       name: "title",
@@ -29,19 +29,19 @@ export const MomahTable = {
     },
   ],
   css: `
-.momah-table-host .table-wrapper {
+.data-table-table-host .table-wrapper {
   border: 1px solid var(--ifm-color-emphasis-300, #e5e7eb);
   border-radius: 12px;
   overflow: hidden;
   background: var(--ifm-background-surface-color, #fff);
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
-.momah-table-host .table {
+.data-table-table-host .table {
   width: 100%;
   margin: 0;
   border-collapse: collapse;
 }
-.momah-table-host .table thead th {
+.data-table-table-host .table thead th {
   background-color: #f5f7f9;
   color: #6c757d;
   font-weight: 600;
@@ -49,16 +49,16 @@ export const MomahTable = {
   font-size: 0.9rem;
   border-bottom: 2px solid #e5e7eb;
 }
-.momah-table-host .table tbody td {
+.data-table-table-host .table tbody td {
   padding: 14px 18px;
   vertical-align: middle;
   border-bottom: 1px solid #e5e7eb;
   font-size: 0.9rem;
 }
-.momah-table-host .table tbody tr:last-child td {
+.data-table-table-host .table tbody tr:last-child td {
   border-bottom: none;
 }
-.momah-table-host .status-pill {
+.data-table-table-host .status-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -67,15 +67,15 @@ export const MomahTable = {
   font-size: 0.8rem;
   font-weight: 600;
 }
-.momah-table-host .status-published {
+.data-table-table-host .status-published {
   background: #ecfdf5;
   color: #047857;
 }
-.momah-table-host .status-unpublished {
+.data-table-table-host .status-unpublished {
   background: #fffbeb;
   color: #b45309;
 }
-.momah-table-host .momah-search-input {
+.data-table-table-host .data-table-search-input {
   border-radius: 8px;
   border: 1px solid #e5e7eb;
   padding: 6px 12px;
@@ -100,7 +100,7 @@ export const MomahTable = {
   var isSearchable = ${isSearchable};
 
   if (isSearchable && actionsContainer) {
-    actionsContainer.innerHTML = '<input type="text" id="searchInput" class="form-control momah-search-input" placeholder="بحث عام..." />';
+    actionsContainer.innerHTML = '<input type="text" id="searchInput" class="form-control data-table-search-input" placeholder="بحث عام..." />';
   }
 
   var mockRows = [
@@ -142,13 +142,13 @@ export const MomahTable = {
 })();
     `;
   },
-  renderRazor: (props) => `@* Include MomahTable files *@
-<link rel="stylesheet" href="~/assets/css/momahTable.css" />
+  renderRazor: (props) => `@* Include DataTable files *@
+<link rel="stylesheet" href="~/assets/css/dataTable.css" />
 <link rel="stylesheet" href="~/assets/css/pagination.css" />
-<script src="~/assets/js/momahTable.js"></script>
+<script src="~/assets/js/dataTable.js"></script>
 
-@* HTML containers for MomahTable *@
-<div class="momah-table-host">
+@* HTML containers for DataTable *@
+<div class="data-table-table-host">
   <div style="width: 100%; text-align: right;" dir="rtl">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem;">
       <h6 style="font-weight: 500; font-size: 1.1rem; color: #016b68; margin: 0;">${props.title}</h6>
@@ -168,11 +168,11 @@ export const MomahTable = {
       ${(props.columnsRaw || "").split(',').map(c => "{ header: '" + c.trim() + "', field: '...' }").join(',\n      ')}
     ];
     const data = [/* your data array */];
-    MomahTable.render('#tableContainer', columns, data, {});
+    RazorKit.DataTable.render('#tableContainer', columns, data, {});
   })();
 </script>`,
   renderHtml: (props) => `
-<div class="momah-table-host" style="width: 100%; text-align: right;" dir="rtl">
+<div class="data-table-table-host" style="width: 100%; text-align: right;" dir="rtl">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--ifm-color-emphasis-300, #e5e7eb); padding-bottom: 1rem;">
     <h6 style="font-weight: 500; font-size: 1.1rem; color: #00a79d; margin: 0;">${props.title}</h6>
     <div id="tableActions" style="flex-grow: 1; max-width: 320px; display: flex; justify-content: flex-end;"></div>

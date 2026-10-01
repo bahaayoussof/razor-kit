@@ -1,6 +1,6 @@
 ---
-sidebar_label: "momah-table"
-title: "momah-table"
+sidebar_label: "DataTable"
+title: "DataTable"
 ---
 
 import Tabs from '@theme/Tabs';
@@ -8,7 +8,11 @@ import TabItem from '@theme/TabItem';
 
 <Tabs>
 <TabItem value="guide" label="Guide" default>
-A lightweight, dependency-free JavaScript component for rendering dynamic HTML tables with pagination, search, and filtering.
+A client-side JavaScript component (`RazorKit.DataTable.render`) that renders an array of records into a Bootstrap-styled HTML table, with an optional search box, filter button, column picker, and pagination controls. It does not fetch, sort, filter, or paginate data itself: search, filter, and page changes call functions that you provide, which load the data and call `render` again.
+
+:::note
+This component was previously named `MomahTable` (`MomahTable.render`, `momahTable.js`, `momah-table.css`, `momah-*` CSS classes). It was renamed to `DataTable` without a compatibility alias; update existing pages to the new names.
+:::
 
 ## UI Preview
 
@@ -24,12 +28,16 @@ A lightweight, dependency-free JavaScript component for rendering dynamic HTML t
 ### 1. Include Files
 
 ```html
-<link rel="stylesheet" href="~/assets/css/momahTable.css"/>
-<script src="/assets/js/momahTable.js"></script>
+<link rel="stylesheet" href="~/assets/css/data-table.css"/>
+<script src="/assets/js/dataTable.js"></script>
 
 <!-- incase need pagination include style -->
 <link rel="stylesheet" href="/assets/css/pagination.css" />
 ```
+
+The `~/` prefix is only resolved in Razor views.
+
+The table, search box, column picker, and pagination also need **Bootstrap 5 CSS**, and the column picker dropdown and the filter button's modal need **Bootstrap 5 JS**. The pagination arrows load `/assets/images/arrow-back.svg` and `/assets/images/arrow-Next.svg`.
 
 ### 2. Create HTML Containers
 
@@ -38,6 +46,8 @@ A lightweight, dependency-free JavaScript component for rendering dynamic HTML t
 <div id="tableContainer"></div> <!-- Table container -->
 <div id="pagination"></div>     <!-- Pagination container (optional) -->
 ```
+
+The rules in `pagination.css` target the `#pagination` ID, so the pagination container must use that ID to receive them.
 
 ### 3. Render the Table
 
@@ -53,8 +63,10 @@ const columns = [
     { header: 'Email', field: 'email' }
 ];
 
-MomahTable.render('#tableContainer', columns, data);
+RazorKit.DataTable.render('#tableContainer', columns, data);
 ```
+
+`render(containerSelector, columns, records, options)` accepts a CSS selector or an element. It replaces the container's content every time it is called. When `records` is empty, a single row with `لا توجد بيانات` (no data) is shown.
 
 ---
 
@@ -63,13 +75,13 @@ MomahTable.render('#tableContainer', columns, data);
 ### Simple Table (No Options)
 
 ```javascript
-MomahTable.render('#tableContainer', columns, data);
+RazorKit.DataTable.render('#tableContainer', columns, data);
 ```
 
 ### Table with Pagination
 
 ```javascript
-MomahTable.render('#tableContainer', columns, data, {
+RazorKit.DataTable.render('#tableContainer', columns, data, {
     pagination: {
         containerSelector: '#pagination',
         currentPage: 1,
@@ -82,7 +94,7 @@ MomahTable.render('#tableContainer', columns, data, {
 ### Table with Search
 
 ```javascript
-MomahTable.render('#tableContainer', columns, data, {
+RazorKit.DataTable.render('#tableContainer', columns, data, {
     search: {
         containerSelector: '#tableActions',
         inputId: 'searchInput',
@@ -94,7 +106,7 @@ MomahTable.render('#tableContainer', columns, data, {
 ### Table with Filter Button
 
 ```javascript
-MomahTable.render('#tableContainer', columns, data, {
+RazorKit.DataTable.render('#tableContainer', columns, data, {
     filter: {
         containerSelector: '#tableActions',
         label: 'Filter',
@@ -106,7 +118,7 @@ MomahTable.render('#tableContainer', columns, data, {
 ### Table with Column Picker
 
 ```javascript
-MomahTable.render('#tableContainer', columns, data, {
+RazorKit.DataTable.render('#tableContainer', columns, data, {
     columnPicker: {
         containerSelector: '#tableActions'
     }
@@ -119,13 +131,14 @@ MomahTable.render('#tableContainer', columns, data, {
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `header` | String | Column header text |
+| `header` | String | Column header text. Inserted as HTML. |
 | `field` | String | Data property to display |
-| `render` | Function | Custom cell content (returns HTML) |
-| `width` | String | Column width (e.g., `'100px'`, `'20%'`) |
-| `className` | String | CSS class for header |
-| `tdClassName` | String | CSS class for cells |
-| `hide` | Boolean | Set `true` to hide column (won't show in picker) |
+| `render` | Function | `(record, index) => value`. Custom cell content; strings containing `<` are inserted as HTML. |
+| `width` | String | Column width for header and cells (e.g., `'100px'`, `'20%'`) |
+| `className` | String | CSS class for the header cell |
+| `tdClassName` | String | CSS class for body cells |
+| `hide` | Boolean | `true` (or `"true"` / `1`) hides the column; it is also left out of the column picker |
+| `show` | Boolean | `false` (or `"false"` / `0`) hides the column, but it still appears (checked) in the column picker |
 
 ### Using `render` for Custom Content
 
@@ -138,6 +151,10 @@ MomahTable.render('#tableContainer', columns, data, {
     `
 }
 ```
+
+:::warning
+Any cell value that is a string containing `<`, whether from `render` **or directly from a `field`**, is inserted with `innerHTML`. Data containing HTML markup is therefore rendered as live HTML. Escape untrusted values (for example in a `render` function) before passing them to the table. Other values are inserted as text.
+:::
 
 ---
 
@@ -169,8 +186,10 @@ const options = {
     }
 };
 
-MomahTable.render('#tableContainer', columns, data, options);
+RazorKit.DataTable.render('#tableContainer', columns, data, options);
 ```
+
+The search box, filter button, and column picker are rendered together into the first `containerSelector` found among `search`, `filter`, and `columnPicker` (in that order).
 
 ### Search Options
 
@@ -178,16 +197,17 @@ MomahTable.render('#tableContainer', columns, data, options);
 |----------|----------|---------|-------------|
 | `containerSelector` | Yes | - | Container element selector |
 | `inputId` | No | `txtFullName` | Input element ID |
-| `placeholder` | No | - | Input placeholder text |
+| `placeholder` | No | `""` | Input placeholder text |
 
 ### Filter Options
 
 | Property | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `containerSelector` | Yes | - | Container element selector |
-| `label` | No | `تصفية البحث` | Button text |
-| `targetModalId` | No | - | Bootstrap modal ID to open |
+| `label` | No | `""` | Button text (inserted as HTML). For icon-only buttons it is used as the `aria-label`. |
+| `targetModalId` | No | - | ID of a Bootstrap modal to open (requires Bootstrap JS) |
 | `onClick` | No | - | Custom click handler |
+| `onFilter` | No | - | Search fallback (see [Handling Search/Filter Events](#handling-searchfilter-events)) |
 | `isIcon` | No | `false` | Show icon-only button |
 | `icon` | No | - | Custom SVG HTML |
 
@@ -195,28 +215,32 @@ MomahTable.render('#tableContainer', columns, data, options);
 
 | Property | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `containerSelector` | Yes | - | Container element selector |
+| `containerSelector` | No | Search or filter container | Container element selector. If none of `columnPicker`, `search`, or `filter` has one, the picker is not rendered. |
+
+Toggling a column sets `hide` on the column object you passed in and re-renders the table.
 
 ### Pagination Options
 
 | Property | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `containerSelector` | Yes | - | Container element selector |
-| `currentPage` | Yes | - | Current page number |
-| `totalPages` | Yes | - | Total number of pages |
-| `onPageChange` | Yes | - | Function called when page changes |
+| `containerSelector` | No | - | Container element selector. If it is missing or not found, the pagination is appended inside the table container. |
+| `currentPage` | No | `1` | Current page number |
+| `totalPages` | Yes | - | Total number of pages. Pagination is only shown when it is greater than 1. |
+| `onPageChange` | No | - | Called with the new page number when the user clicks a page, Previous, or Next. |
+
+With more than 5 pages, the first and last pages, the pages around the current page, and ellipses (`...`) are shown.
 
 ---
 
 ## Handling Search/Filter Events
 
-When the user searches or filters, `MomahTable` will call one of these functions (in order):
+When the user presses `Enter` in the search box, clicks the search icon, or clicks the clear (X) button, `DataTable` calls the first of these functions that exists:
 
 1. `window.performSearch()`
 2. `window.LoadData()`
-3. `filterOptions.onFilter`
+3. `filter.onFilter` (from the filter options)
 
-Define one of these in your page:
+No arguments are passed; read the search value from the input yourself:
 
 ```javascript
 function performSearch() {
@@ -230,6 +254,8 @@ function LoadData() {
 }
 ```
 
+If `window.initializeSearchInput` exists, it is called after the actions are rendered.
+
 ---
 
 ## Common Patterns
@@ -237,13 +263,13 @@ function LoadData() {
 ### Pattern 1: Table Only
 
 ```javascript
-MomahTable.render('#tableContainer', columns, data);
+RazorKit.DataTable.render('#tableContainer', columns, data);
 ```
 
 ### Pattern 2: Table with Search
 
 ```javascript
-MomahTable.render('#tableContainer', columns, data, {
+RazorKit.DataTable.render('#tableContainer', columns, data, {
     search: { containerSelector: '#tableActions' }
 });
 ```
@@ -251,7 +277,7 @@ MomahTable.render('#tableContainer', columns, data, {
 ### Pattern 3: Table with Pagination
 
 ```javascript
-MomahTable.render('#tableContainer', columns, data, {
+RazorKit.DataTable.render('#tableContainer', columns, data, {
     pagination: {
         containerSelector: '#pagination',
         currentPage: 1,
@@ -264,7 +290,7 @@ MomahTable.render('#tableContainer', columns, data, {
 ### Pattern 4: Table with Search + Filter + Pagination
 
 ```javascript
-MomahTable.render('#tableContainer', columns, data, {
+RazorKit.DataTable.render('#tableContainer', columns, data, {
     search: { containerSelector: '#tableActions' },
     filter: {
         containerSelector: '#tableActions',
@@ -292,7 +318,7 @@ Columns can be hidden in two ways:
 ```javascript
 const columns = [
     { header: 'ID', field: 'id' },
-    { header: 'Secret', field: 'secret', hide: true }, // Hidden
+    { header: 'Secret', field: 'secret', hide: true }, // Hidden, not in the column picker
     { header: 'Name', field: 'name' }
 ];
 ```
@@ -302,32 +328,43 @@ const columns = [
 ```javascript
 const columns = [
     { header: 'ID', field: 'id' },
-    { header: 'Secret', field: 'secret', show: false }, // Hidden
+    { header: 'Secret', field: 'secret', show: false }, // Hidden, but still listed (checked) in the column picker
     { header: 'Name', field: 'name' }
 ];
 ```
 
 ---
 
+## Known Limitations
+
+- **Search box present → actions are not re-rendered.** If the search input already exists, later `render` calls leave the search box, filter button, and column picker untouched. The column picker then keeps the records from the call that created it, so toggling a column after loading new data (for example another page) re-renders the table with the old records.
+- There is no built-in sorting.
+- The pagination arrows use fixed images and are not mirrored for right-to-left pages.
+
+## Accessibility
+
+- The table uses a native `<table>` with `<thead>`/`<tbody>`.
+- The search input has only a placeholder, no label. The clear button and search icon have `aria-label`s; the search icon (`role="button"`, focusable) responds to clicks only, not to the keyboard.
+- An icon-only filter button only gets an `aria-label` when `label` is set.
+- Column picker checkboxes are wrapped in `<label>` elements.
+- The Previous/Next links have `aria-label`s; the current page is not marked with `aria-current`, and the arrow images have no `alt` text.
+
 ## Notes
 
-- The `render` function returns HTML content for cells
-- Hidden columns (with `hide: true`) won't appear in the Column Picker
-- Search input automatically triggers `Enter` key to search
-- Clear button (X) in search input clears and triggers search
-- Pagination shows ellipsis (...) for large page counts
+- Pagination shows ellipsis (...) for large page counts.
+- Built-in texts are Arabic (`لا توجد بيانات`, `الأعمدة`).
 
 </TabItem>
 
 
-<TabItem value="momah-table.css" label="momah-table.css">
+<TabItem value="data-table.css" label="data-table.css">
 
 ```css
 /* this file contains data table styles and action button with dropdown */
 
 /* Table look */
-.momah-table-host .table-wrapper,
-.momah-table-host .jtable-main-container {
+.data-table-table-host .table-wrapper,
+.data-table-table-host .jtable-main-container {
 	border: 1px solid #e5e7eb;
 	border-radius: 12px;
 	overflow: visible;
@@ -335,16 +372,16 @@ const columns = [
 }
 
 /* Round top corners directly on the first header cells (since overflow is now visible) */
-.momah-table-host .table thead tr:first-child th:first-child {
+.data-table-table-host .table thead tr:first-child th:first-child {
 	border-top-right-radius: 11px;
 }
 
-.momah-table-host .table thead tr:first-child th:last-child {
+.data-table-table-host .table thead tr:first-child th:last-child {
 	border-top-left-radius: 11px;
 }
 
 /* Allow Bootstrap dropdowns to overflow the responsive container freely */
-.momah-table-host .table-responsive {
+.data-table-table-host .table-responsive {
 	overflow: visible !important;
 }
 
@@ -353,36 +390,36 @@ table thead th {
 }
 
 /* Header background */
-.momah-table-host .table thead,
-.momah-table-host .table thead tr,
-.momah-table-host .table thead th,
-.momah-table-host .jtable thead,
-.momah-table-host .jtable thead tr,
-.momah-table-host .jtable thead th {
+.data-table-table-host .table thead,
+.data-table-table-host .table thead tr,
+.data-table-table-host .table thead th,
+.data-table-table-host .jtable thead,
+.data-table-table-host .jtable thead tr,
+.data-table-table-host .jtable thead th {
 	background-color: #f5f7f9 !important;
 }
 
 /* Bootstrap table var */
-.momah-table-host .table thead {
+.data-table-table-host .table thead {
 	--bs-table-bg: #f5f7f9 !important;
 }
 
 /* Header cells */
-.momah-table-host .table thead th,
-.momah-table-host .jtable thead th {
+.data-table-table-host .table thead th,
+.data-table-table-host .jtable thead th {
 	color: #6c757d !important;
 	font-weight: 500;
 	padding: 12px 16px !important;
 }
 
 /* Body cells */
-.momah-table-host .table tbody td,
-.momah-table-host .jtable tbody td {
+.data-table-table-host .table tbody td,
+.data-table-table-host .jtable tbody td {
 	vertical-align: middle;
 	padding: 12px 16px !important;
 }
 
-.momah-table-host .wrappingText {
+.data-table-table-host .wrappingText {
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -458,13 +495,13 @@ table thead th {
 }
 
 /* Role chips inside roles column */
-.momah-table-host .roles-cell {
+.data-table-table-host .roles-cell {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 6px;
 }
 
-.momah-table-host .role-chip {
+.data-table-table-host .role-chip {
 	display: inline-flex;
 	align-items: center;
 	padding: 2px 8px;
@@ -475,13 +512,13 @@ table thead th {
 	line-height: 1.2;
 }
 
-/* MomahTable Host Containers */
-.momah-actions-host {
+/* DataTable Host Containers */
+.data-table-actions-host {
 	margin-bottom: 1rem;
 }
 
-/* MomahTable Search Bar */
-.momah-search-input {
+/* DataTable Search Bar */
+.data-table-search-input {
 	border: 1px solid #d1d5db;
 	border-radius: 8px;
 	padding: 12px 50px 12px 50px;
@@ -489,7 +526,7 @@ table thead th {
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.momah-btn-clear {
+.data-table-btn-clear {
 	left: 12px;
 	top: 50%;
 	transform: translateY(-50%);
@@ -502,7 +539,7 @@ table thead th {
 	height: 20px;
 }
 
-.momah-search-icon {
+.data-table-search-icon {
 	right: 12px;
 	top: 50%;
 	transform: translateY(-50%);
@@ -510,8 +547,8 @@ table thead th {
 	cursor: pointer;
 }
 
-/* MomahTable Filter Button */
-.momah-filter-btn {
+/* DataTable Filter Button */
+.data-table-filter-btn {
 	background-color: #f9fafb;
 	color: #374151;
 	border: 1px solid #d1d5db;
@@ -521,7 +558,7 @@ table thead th {
 	min-width: 140px;
 }
 
-.momah-filter-btn-icon {
+.data-table-filter-btn-icon {
 	font-size: 12px;
 	color: #6b7280;
 	margin-left: 4px;
@@ -574,12 +611,12 @@ table thead th {
 }
 
 /* Columns Dropdown */
-.momah-cols-dropdown {
+.data-table-cols-dropdown {
 	position: relative;
 	display: inline-block;
 }
 
-.momah-cols-menu {
+.data-table-cols-menu {
 	display: none;
 	position: absolute;
 	left: 0;
@@ -598,16 +635,16 @@ table thead th {
 }
 
 /* RTL Support for dropdown alignment if needed, usually driven by HTML dir="rtl" */
-[dir="rtl"] .momah-cols-menu {
+[dir="rtl"] .data-table-cols-menu {
 	left: auto;
 	right: 0;
 }
 
-.momah-cols-menu.show {
+.data-table-cols-menu.show {
 	display: block;
 }
 
-.momah-col-item {
+.data-table-col-item {
 	display: flex;
 	align-items: center;
 	padding: 8px 12px;
@@ -617,11 +654,11 @@ table thead th {
 	margin-bottom: 2px;
 }
 
-.momah-col-item:hover {
+.data-table-col-item:hover {
 	background-color: #f3f4f6;
 }
 
-.momah-col-checkbox {
+.data-table-col-checkbox {
 	margin-inline-end: 10px;
 	width: 16px;
 	height: 16px;
@@ -629,14 +666,14 @@ table thead th {
 	accent-color: #016b68;
 }
 
-.momah-col-label {
+.data-table-col-label {
 	font-size: 14px;
 	color: #374151;
 	user-select: none;
 	flex-grow: 1;
 }
 
-.momah-cols-btn {
+.data-table-cols-btn {
 	background-color: #fff;
 	color: #374151;
 	border: 1px solid #d1d5db;
@@ -648,23 +685,23 @@ table thead th {
 	transition: all 0.2s;
 }
 
-.momah-cols-btn:hover {
+.data-table-cols-btn:hover {
 	background-color: #f9fafb;
 	border-color: #9ca3af;
 }
 
 /* Rotate arrow when dropdown is open */
-.momah-cols-btn[aria-expanded="true"] .momah-arrow-icon {
+.data-table-cols-btn[aria-expanded="true"] .data-table-arrow-icon {
 	transform: rotate(180deg);
 }
 
-.momah-arrow-icon {
+.data-table-arrow-icon {
 	transition: transform 0.3s ease-in-out;
 }
 ```
 
 </TabItem>
-<TabItem value="momahTable.js" label="momahTable.js">
+<TabItem value="dataTable.js" label="dataTable.js">
 
 ```javascript
 (function (global) {
@@ -784,7 +821,7 @@ table thead th {
 		if (!host) return;
 
 		// Add generic class for styling
-		host.classList.add("momah-actions-host");
+		host.classList.add("data-table-actions-host");
 
 		var wrapper = createElement("div", "d-flex align-items-center gap-2");
 
@@ -806,15 +843,15 @@ table thead th {
 			);
 
 			let searchHtml = `
-        <input type="text" id="${inputId}" class="form-control search-input momah-search-input" placeholder="${placeholder || ""
+        <input type="text" id="${inputId}" class="form-control search-input data-table-search-input" placeholder="${placeholder || ""
 				}"/>
-        <button type="button" class="btn-clear momah-btn-clear position-absolute" aria-label="Clear search input">
+        <button type="button" class="btn-clear data-table-btn-clear position-absolute" aria-label="Clear search input">
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
 						<path fill-rule="evenodd" clip-rule="evenodd" d="M0.183058 0.183058C0.427136 -0.0610194 0.822864 -0.0610194 1.06694 0.183058L6.45833 5.57445L11.8497 0.183058C12.0938 -0.0610194 12.4895 -0.0610194 12.7336 0.183058C12.9777 0.427136 12.9777 0.822864 12.7336 1.06694L7.34222 6.45833L12.7336 11.8497C12.9777 12.0938 12.9777 12.4895 12.7336 12.7336C12.4895 12.9777 12.0938 12.9777 11.8497 12.7336L6.45833 7.34222L1.06694 12.7336C0.822864 12.9777 0.427136 12.9777 0.183058 12.7336C-0.0610194 12.4895 -0.0610194 12.0938 0.183058 11.8497L5.57445 6.45833L0.183058 1.06694C-0.0610194 0.822864 -0.0610194 0.427136 0.183058 0.183058Z" fill="#161616"/>
 					</svg>
         </button>
-        <div class="search-icon-text momah-search-icon position-absolute d-flex align-items-center" role="button" tabindex="0" aria-label="Search">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="momah-search-icon-svg">
+        <div class="search-icon-text data-table-search-icon position-absolute d-flex align-items-center" role="button" tabindex="0" aria-label="Search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="data-table-search-icon-svg">
             <path
               d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -835,10 +872,10 @@ table thead th {
 
 			if (fb.isIcon) {
 				// Strip all button styles: no border, no background, no padding
-				btnClasses += " p-0 border-0 bg-transparent momah-icon-trigger";
+				btnClasses += " p-0 border-0 bg-transparent data-table-icon-trigger";
 			} else {
 				// Standard button styling
-				btnClasses += " btn filter-btn momah-filter-btn gap-2";
+				btnClasses += " btn filter-btn data-table-filter-btn gap-2";
 			}
 
 			let btn = createElement("button", btnClasses);
@@ -888,10 +925,10 @@ table thead th {
 
 		// Render Columns Dropdown if columnOptions is present
 		if (columnOptions && columnOptions.columns) {
-			let colContainer = createElement("div", "momah-cols-dropdown ms-2");
+			let colContainer = createElement("div", "data-table-cols-dropdown ms-2");
 
 			// Button
-			let btn = createElement("button", "momah-cols-btn");
+			let btn = createElement("button", "data-table-cols-btn");
 			btn.type = "button";
 			btn.setAttribute("data-bs-toggle", "dropdown");
 			btn.setAttribute("aria-expanded", "false");
@@ -901,7 +938,7 @@ table thead th {
 				<path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4V3zm9 0h-4v18h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"></path>
 			</svg>`;
 
-			const arrowIcon = `<svg class="momah-arrow-icon" width="10" height="7" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+			const arrowIcon = `<svg class="data-table-arrow-icon" width="10" height="7" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg">
 				<path d="M1.1281 0.254404C1.22967 0.388883 1.53293 0.790336 1.71353 1.02176C2.07526 1.48527 2.56952 2.10118 3.10269 2.71526C3.63856 3.33244 4.20148 3.93352 4.70158 4.37539C4.95234 4.59695 5.17262 4.76531 5.35439 4.87489C5.52535 4.97796 5.62634 4.99939 5.62634 4.99939C5.62634 4.99939 5.72436 4.97795 5.89531 4.8749C6.07709 4.76532 6.29737 4.59696 6.54813 4.37539C7.04822 3.93352 7.61115 3.33244 8.14701 2.71525C8.68018 2.10116 9.17444 1.48525 9.53617 1.02173C9.71678 0.790305 10.0196 0.38942 10.1212 0.25494C10.3259 -0.0229959 10.7175 -0.0829425 10.9955 0.121751C11.2734 0.326445 11.3328 0.717694 11.1281 0.99563L11.1265 0.997727C11.02 1.13876 10.7059 1.55463 10.5216 1.79077C10.1517 2.26475 9.64302 2.89884 9.09089 3.53476C8.54146 4.16757 7.93673 4.81649 7.3758 5.31212C7.09605 5.5593 6.81247 5.78156 6.54067 5.94542C6.28602 6.09893 5.96361 6.25 5.62485 6.25C5.28609 6.25 4.96368 6.09893 4.70904 5.94541C4.43723 5.78156 4.15366 5.5593 3.87391 5.31212C3.31298 4.81649 2.70825 4.16758 2.15882 3.53477C1.60669 2.89886 1.098 2.26478 0.728099 1.7908C0.543709 1.55453 0.22964 1.13871 0.1233 0.997924L0.1219 0.996069C-0.082796 0.718135 -0.0237165 0.326489 0.254218 0.121793C0.532143 -0.0828953 0.923396 -0.0235072 1.1281 0.254404Z" fill="#54565B"/>
 				</svg>`;
 
@@ -909,7 +946,7 @@ table thead th {
 			colContainer.appendChild(btn);
 
 			// Menu
-			let menu = createElement("div", "momah-cols-menu dropdown-menu");
+			let menu = createElement("div", "data-table-cols-menu dropdown-menu");
 
 			// Stop click from closing dropdown
 			menu.addEventListener("click", function (e) {
@@ -924,9 +961,9 @@ table thead th {
 				if (isHidden) return;
 
 				// Create item
-				let item = createElement("label", "momah-col-item");
+				let item = createElement("label", "data-table-col-item");
 
-				let checkbox = createElement("input", "momah-col-checkbox");
+				let checkbox = createElement("input", "data-table-col-checkbox");
 				checkbox.type = "checkbox";
 				checkbox.checked = !isHidden;
 
@@ -939,7 +976,7 @@ table thead th {
 					}
 				});
 
-				let label = createElement("span", "momah-col-label");
+				let label = createElement("span", "data-table-col-label");
 				label.textContent = col.header || "Column " + (index + 1);
 
 				item.appendChild(checkbox);
@@ -992,7 +1029,7 @@ table thead th {
 		});
 
 		// --- Handle Search Glass Icon Click ---
-		let searchIcon = host.querySelector(".momah-search-icon");
+		let searchIcon = host.querySelector(".data-table-search-icon");
 		if (searchIcon) {
 			searchIcon.addEventListener("click", triggerSearch);
 		}
@@ -1022,7 +1059,7 @@ table thead th {
 		if (!container) return;
 
 		// Add generic class for styling
-		container.classList.add("momah-table-host");
+		container.classList.add("data-table-table-host");
 
 		// Filter columns based on show/hide properties
 		var visibleColumns = columns.filter(function (col) {
@@ -1161,7 +1198,7 @@ table thead th {
 					: pagination.containerSelector;
 
 			if (host) {
-				host.classList.add("momah-pagination-host");
+				host.classList.add("data-table-pagination-host");
 				host.innerHTML = "";
 				host.appendChild(paginationEl);
 			} else {
@@ -1172,7 +1209,8 @@ table thead th {
 
 	}
 
-	global.MomahTable = {
+	global.RazorKit = global.RazorKit || {};
+	global.RazorKit.DataTable = {
 		render: render,
 	};
 })(window);

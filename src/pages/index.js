@@ -156,7 +156,6 @@ export default function Home() {
             <div>
               <div className="momah-card-header">
                 <h3 className="momah-card-title">DualDate</h3>
-                <span className="momah-card-status">NEW</span>
               </div>
               <p className="momah-card-desc">
                 Dual Hijri &amp; Gregorian date selector with custom range
@@ -166,33 +165,31 @@ export default function Home() {
           </Link>
 
           <Link
-            to="/docs/components/momah-table"
+            to="/docs/components/DataTable"
             className="momah-card"
           >
             <div>
               <div className="momah-card-header">
-                <h3 className="momah-card-title">MomahTable</h3>
-                <span className="momah-card-status">UPDATED</span>
+                <h3 className="momah-card-title">DataTable</h3>
               </div>
               <p className="momah-card-desc">
-                High performance server-side datagrid with sorting, filtering,
-                and pagination.
+                JavaScript table renderer with optional search box, column
+                picker, and pagination controls.
               </p>
             </div>
           </Link>
 
           <Link
-            to="/docs/components/MomahSelect"
+            to="/docs/components/SmartSelect"
             className="momah-card"
           >
             <div>
               <div className="momah-card-header">
-                <h3 className="momah-card-title">MomahSelect</h3>
-                <span className="momah-card-status">STABLE</span>
+                <h3 className="momah-card-title">SmartSelect</h3>
               </div>
               <p className="momah-card-desc">
-                Select input component with remote data fetching and
-                multi-select.
+                Custom single or multi-select with optional search and a
+                JavaScript API.
               </p>
             </div>
           </Link>

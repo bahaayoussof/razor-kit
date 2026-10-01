@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 
 <Tabs>
 <TabItem value="guide" label="Guide" default>
-The `_DateInput.cshtml` is a reusable Razor partial view component that creates a styled date input field with calendar popup functionality. It supports both Ummalqura (Hijri) and Gregorian calendar systems.
+The `_DateInput.cshtml` partial view renders a labelled, read-only date input with a calendar icon. The calendar popup itself is not part of the partial: it is attached by a global JavaScript function, `createCalendersWithRang`, which your application must provide. The partial passes it either the Umm al-Qura (Hijri) or the Gregorian calendar type.
 
 ## UI Preview
 
@@ -21,94 +21,100 @@ The `_DateInput.cshtml` is a reusable Razor partial view component that creates 
 
 ## Component Features
 
-- ✅ Calendar popup with date selection
-- ✅ Support for Ummalqura (Hijri) and Gregorian calendars
-- ✅ Required field validation
-- ✅ Custom SVG calendar icon
-- ✅ Modal-compatible (auto-reinitializes in modals)
-- ✅ Responsive Bootstrap styling
+- Labelled read-only text input with a calendar icon
+- Calendar type selection: Umm al-Qura (Hijri, default) or Gregorian, passed to `createCalendersWithRang`
+- Red asterisk and `required` attribute when required
+- Re-initializes when a Bootstrap modal containing it is shown
+- Bootstrap 5 form classes
 
 ---
 
+## Location
+
+`Views/Shared/UI/_DateInput.cshtml`
+
 ## Model Parameters
 
-The component accepts a tuple with the following parameters:
+The model must be a C# tuple. Elements are read by position; an anonymous object or other model type throws an `InvalidCastException`.
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `Label` | `string` | Yes | The label text displayed above the input |
-| `Required` | `bool` | Yes | Whether the field is required (shows red asterisk) |
-| `Id` | `string` | Yes | Unique ID for the input element |
-| `Placeholder` | `string` | Yes | Placeholder text shown when empty |
-| `DateType` | `string` | No | Calendar type: `"ummalqura"` (default) or `"gregorian"` |
+| Index | Parameter | Type | Required | Description |
+|-------|-----------|------|----------|-------------|
+| `[0]` | `Label` | `string` | Yes | The label text displayed above the input. Must not be `null`. |
+| `[1]` | `Required` | `bool` | Yes | Whether the field is required (shows a red asterisk and adds the `required` attribute). Must be a `bool`. |
+| `[2]` | `Id` | `string` | Yes | Used as the input's `id` and `name`. Must not be `null`. |
+| `[3]` | `Placeholder` | `string` | Yes | Placeholder text shown when empty. Must not be `null`; the tuple must have at least 4 elements. |
+| `[4]` | `DateType` | `string` | No | `"gregorian"` for the Gregorian calendar. Missing, `null`, or empty means `"ummalqura"`. Any other value is passed to `createCalendersWithRang` unchanged. |
 
 ---
 
 ## Usage Examples
 
-### Basic Usage (Ummalqura Calendar)
+### Basic Usage (Umm al-Qura Calendar)
 
 ```csharp
-@await Html.PartialAsync("_DateInput", new {
+@await Html.PartialAsync("UI/_DateInput", (
     "تاريخ الميلاد",  // Label
     true,             // Required
     "BirthDate",      // Id
     "اختر التاريخ"    // Placeholder
-})
+))
 ```
 
 ### With Gregorian Calendar
 
 ```csharp
-@await Html.PartialAsync("_DateInput", new
-{
-    "تاريخ التسجيل",  // Label
-    true,             // Required
+@await Html.PartialAsync("UI/_DateInput", (
+    "تاريخ التسجيل",    // Label
+    true,               // Required
     "RegistrationDate", // Id
-    "Select Date",    // Placeholder
-    "gregorian"       // DateType
-})
+    "Select Date",      // Placeholder
+    "gregorian"         // DateType
+))
 ```
 
 ### Optional Field (Not Required)
 
 ```csharp
-@await Html.PartialAsync("_DateInput", new
-{
+@await Html.PartialAsync("UI/_DateInput", (
     "تاريخ الإنهاء",  // Label
     false,            // Required (false = optional)
     "EndDate",        // Id
     "اختر التاريخ"    // Placeholder
-})
+))
 ```
 
 ## Integration Notes
 
 ### Required JavaScript Functions
 
-This component depends on the `createCalendersWithRang` function which should be available globally:
+The partial calls a global function that is **not included** in the partial or in this repository:
 
 ```javascript
 function createCalendersWithRang(selector, minRange, maxRange, dateType, rangeString)
 ```
 
-**Parameters:**
-- `selector`: CSS selector for the input element
-- `minRange`: Minimum date range (e.g., `"-100y"` for 100 years back)
-- `maxRange`: Maximum date range (e.g., `"+2y"` for 2 years forward)
-- `dateType`: Calendar type (`""` for Gregorian, `"ummalqura"` for Hijri)
-- `rangeString`: Range string for validation
+The partial always calls it as `createCalendersWithRang("#{Id}", "-100y", "+2y", dateType, "-100:+2")`, where `dateType` is `""` for Gregorian and `"ummalqura"` (or your custom value) otherwise. The range (100 years back to 2 years forward) cannot be changed through the model.
+
+If the function is not defined, the partial skips initialization silently. Because the input is `readonly`, the user then has no way to enter a date.
+
+The `.calendars-popup` style in the partial (raised `z-index`) targets the jQuery Calendars picker popup.
+
+### Initialization
+
+- jQuery must be loaded before the partial; its inline script uses `$` immediately.
+- Initialization runs 100 ms after `document.ready`.
+- If a `daterangepicker` was attached to the input by other page scripts, it is removed first.
 
 ### Modal Support
 
-The component automatically reinitializes when used inside Bootstrap modals. No additional code is required.
+When a Bootstrap modal containing the input is shown (`shown.bs.modal`), the partial calls `createCalendersWithRang` again after 100 ms.
 
 ### Form Validation
 
-When `Required` is set to `true`:
-- A red asterisk (*) appears next to the label
-- The input has the `required` attribute
-- An error message appears below the input if validation fails
+When `Required` is `true`:
+- A red asterisk (*) appears next to the label.
+- The input has the `required` attribute. Because the input is also `readonly`, browsers do not enforce `required` on it.
+- A hidden error element (`#{Id}-error`, text `الحقل مطلوب`) is rendered, but the partial never shows it. Showing it and blocking submission is left to your own validation code.
 
 ---
 
@@ -118,6 +124,31 @@ When `Required` is set to `true`:
 - `form-label` - Bootstrap label styling
 - `text-danger` - Red text for required indicator/error
 - `small` - Small text size for error messages
+- `mb-3`, `mt-1`, `position-relative` - Bootstrap spacing/positioning utilities
+
+The partial also outputs a small `<style>` block (for `.calendars-popup`) every time it is rendered.
+
+---
+
+## Dependencies
+
+- jQuery
+- A global `createCalendersWithRang` function (application-provided), which in turn uses a calendar picker such as jQuery Calendars
+- Bootstrap 5 CSS
+
+## Accessibility
+
+- The `<label>` is associated with the input (`for="{Id}"`).
+- The partial adds no ARIA attributes. Keyboard support for opening and using the calendar depends on the picker attached by `createCalendersWithRang`.
+- The error element is not linked to the input.
+
+## RTL
+
+The calendar icon is always positioned on the physical left (`left: 10px`, with `padding-left` on the input), regardless of page direction.
+
+## Security Notes
+
+`Label`, `Id`, `Placeholder`, and `DateType` are output with normal Razor encoding.
 
 </TabItem>
 

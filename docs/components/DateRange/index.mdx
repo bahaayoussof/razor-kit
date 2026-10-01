@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 
 <Tabs>
 <TabItem value="guide" label="Guide" default>
-The `_DateRange` partial view provides a user-friendly date picker that supports selecting a range of dates. It includes support for both Umm Al-Qura and Gregorian calendar systems.
+The `_DateRange` partial view renders a read-only input with a jQuery Calendars picker in range-select mode. The user can pick a single date or a start and end date, using the Umm al-Qura (Hijri) or Gregorian calendar.
 
 ## UI Preview
 
@@ -22,7 +22,7 @@ The `_DateRange` partial view provides a user-friendly date picker that supports
 
 ## Usage
 
-To use the component, you can render the `UI/_DateRange` partial view using either `Html.PartialAsync` or the `&lt;partial>` tag helper. Pass the required parameters as a tuple.
+To use the component, render the `UI/_DateRange` partial view using either `Html.PartialAsync` or the `<partial>` tag helper. Pass the parameters as a tuple.
 
 ### Using Html.PartialAsync
 
@@ -48,30 +48,55 @@ To use the component, you can render the `UI/_DateRange` partial view using eith
 
 ## Parameters
 
-The model for this partial view is a `ValueTuple`. The parameters must be passed in the specific order listed below:
+The model for this partial view must be a tuple (it is cast to `ITuple`). The parameters must be passed in the order listed below:
 
 |    Name     | Type     | Required |   Default   | Description                                                                       |
 | :---------: | :------- | :------- | :---------: | :-------------------------------------------------------------------------------- |
-|    Label    | `string` | **Yes**  |      -      | The text label to display above the input field.                                  |
-|  Required   | `bool`   | **Yes**  |      -      | Specifies if the field is mandatory. Adds validation styles and logic.            |
-|     Id      | `string` | **Yes**  |      -      | The unique ID attribute for the input element.                                    |
-| Placeholder | `string` | **Yes**  |      -      | Text to display when the input is empty.                                          |
-|  DateType   | `string` | No       | "ummalqura" | The type of calendar to use. Values: `"ummalqura"` or `"gregorian"`.              |
-|  OnSelect   | `string` | No       |   `null`    | Name of a global Javascript callback function to trigger when a date is selected. |
+|    Label    | `string` | **Yes**  |      -      | The text label to display above the input field. Must not be `null`.             |
+|  Required   | `bool`   | **Yes**  |      -      | Specifies if the field is mandatory. Adds validation styles and logic. Must be a `bool`. |
+|     Id      | `string` | **Yes**  |      -      | Used as the input's `id` and `name`. Must not be `null`, and must contain only letters, digits, `_`, or `$` (see note below). |
+| Placeholder | `string` | **Yes**  |      -      | Text to display when the input is empty. Must not be `null`.                     |
+|  DateType   | `string` | No       | "ummalqura" | `"gregorian"` for the Gregorian calendar. Any other value (or missing/empty) uses `"ummalqura"`. |
+|  OnSelect   | `string` | No       |   `null`    | Name of a global JavaScript function to call when a date is selected.            |
+
+:::caution
+The partial defines a global function named `validateDateRange_{Id}`. If `Id` contains characters that are not valid in a JavaScript identifier, such as `-`, the generated script has a syntax error and the picker is not initialized.
+:::
+
+## Value Format
+
+The input (submitted with the name `{Id}`) contains:
+
+- `""` when nothing is selected
+- `yyyy-mm-dd` for a single date (also when the same date is picked as start and end)
+- `yyyy-mm-dd - yyyy-mm-dd` for a range
+
+Dates are formatted in the selected calendar (Hijri dates for `ummalqura`).
+
+Selectable dates are limited to 80 years back and 20 years forward. The limits cannot be changed through the model.
 
 ## Client-Side Features
 
 ### Validation
 
-The component includes built-in validation. If `Required` is set to `true`:
+If `Required` is set to `true`:
 
 - A red asterisk (\*) is appended to the label.
-- The input border turns red and an error message appears if left empty upon form submission or user interaction.
-- The calendar icon changes color to reflect validation state (Red for error, Green for valid).
+- On form submission, if the input is empty, submission is prevented, the input border turns red, the error message `حقل {Label} مطلوب` is shown, and the input receives focus.
+- After the first validation, the state is re-checked on `change` and `blur`.
+- The calendar icon changes color to reflect validation state (red for error, green for valid).
+
+Selecting a date always marks the input as valid (green border and icon), even when `Required` is `false`.
+
+A validation function is exposed per instance:
+
+```javascript
+var isValid = window.validateDateRange_DateRangeId(); // true / false
+```
 
 ### JavaScript Helper
 
-A global helper function is available to easily retrieve the selected values from the input.
+A global helper function is available to retrieve the selected values from the input.
 
 #### `getDateRangeValue(inputId)`
 
@@ -80,21 +105,18 @@ Extracts the selected dates as an array.
 **Example:**
 
 ```javascript
-// Function signature
-// window.getDateRangeValue = function (inputId) { ... }
-
 // Usage
-var props = window.getDateRangeValue("DateRangeId");
+var dates = window.getDateRangeValue("DateRangeId");
 
 // Output examples:
-// []                  -> No date selected
+// []                  -> No date selected (or input not found)
 // ["1446-01-01"]      -> Single date selected
 // ["1446-01-01", "1446-01-10"] -> Date range selected
 ```
 
 ### Callback Function
 
-If an `OnSelect` function name is provided, it will be called with the selected date strings and the input ID.
+If an `OnSelect` function name is provided and a function with that name exists on `window`, it is called with the selected date strings and the input ID. After the callback, a jQuery `change` event is triggered on the input, and Parsley validation is reset if Parsley is loaded.
 
 **Example:**
 
@@ -104,6 +126,36 @@ function handleSelectedDate(dateStrings, inputId) {
   console.log("Input ID:", inputId);
 }
 ```
+
+### Modal Support
+
+The picker is initialized 100 ms after `document.ready`, and re-initialized when a Bootstrap modal containing the input is shown.
+
+## Dependencies
+
+Load before the partial (its inline script uses jQuery immediately):
+
+- jQuery
+- jQuery Calendars: `jquery.calendars.js`, `jquery.calendars.plus.js`, `jquery.calendars.picker.js`, and `jquery.calendars.ummalqura.js`
+- Bootstrap 5 CSS (`form-control`, `form-label`, `is-invalid` / `is-valid`, spacing utilities)
+
+If `$.calendars` is not loaded, the partial skips initialization silently. Because the input is `readonly`, the user then cannot enter a date.
+
+The partial outputs a `<style>` block every time it is rendered. Its `.calendars-popup` rules are global, so they restyle every jQuery Calendars popup on the page (including hiding the "today" command).
+
+## Accessibility
+
+- The `<label>` is associated with the input (`for="{Id}"`).
+- The calendar icon is a clickable `<span>` without a role, accessible name, or keyboard focus.
+- The error message is not linked to the input, and the partial adds no ARIA attributes. Keyboard support inside the popup comes from the jQuery Calendars picker.
+
+## RTL
+
+The calendar icon is always positioned on the physical left (`left: 10px`), regardless of page direction.
+
+## Security Notes
+
+`Label`, `Id`, `Placeholder`, and `OnSelect` are output with normal Razor encoding, including where they are placed inside JavaScript strings.
 
 </TabItem>
 

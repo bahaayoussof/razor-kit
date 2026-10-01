@@ -1,5 +1,5 @@
-export const MomahSelect = {
-  title: "_MomahSelect",
+export const SmartSelect = {
+  title: "_SmartSelect",
   props: [
     {
       name: "label",
@@ -268,7 +268,7 @@ export const MomahSelect = {
 })();
     `;
   },
-  renderRazor: (props) => `@await Html.PartialAsync("~/Views/Shared/UI/_MomahSelect.cshtml", new {
+  renderRazor: (props) => `@await Html.PartialAsync("~/Views/Shared/UI/_SmartSelect.cshtml", new {
     Id = "${props.id}",
     Label = "${props.label}",
     Required = ${props.required},

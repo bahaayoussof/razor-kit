@@ -8,7 +8,7 @@ import { InputField } from "./InputField";
 import { TextArea } from "./TextArea";
 import { SelectInput } from "./SelectInput";
 import { AutoComplete } from "./AutoComplete";
-import { MomahSelect } from "./MomahSelect";
+import { SmartSelect } from "./SmartSelect";
 import { DateInput } from "./DateInput";
 import { DateRange } from "./DateRange";
 import { DualDate } from "./DualDate";
@@ -17,7 +17,7 @@ import { AttachBox } from "./AttachBox";
 import { AttachmentCard } from "./AttachmentCard";
 import { CkEditor } from "./CkEditor";
 import { StatusModal } from "./StatusModal";
-import { MomahTable } from "./MomahTable";
+import { DataTable } from "./DataTable";
 
 export const componentConfigs = {
   Badge,
@@ -30,7 +30,7 @@ export const componentConfigs = {
   TextArea,
   AutoComplete,
   SelectInput,
-  MomahSelect,
+  SmartSelect,
   DateInput,
   DateRange,
   DualDate,
@@ -39,6 +39,5 @@ export const componentConfigs = {
   AttachmentCard,
   CkEditor,
   StatusModal,
-  MomahTable,
-  "momah-table": MomahTable, // support kebab-case alias from MDX references
+  DataTable,
 };

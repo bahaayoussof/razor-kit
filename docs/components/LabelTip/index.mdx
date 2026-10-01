@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 
 <Tabs>
 <TabItem value="guide" label="Guide" default>
-Displays a label with an optional help tooltip icon. Supports two modes:
+Displays a label with an optional info icon that shows a tooltip. It supports two modes, described below the preview.
 
 ## UI Preview
 
@@ -19,17 +19,25 @@ Displays a label with an optional help tooltip icon. Supports two modes:
 ---
 
 1. **Explicit Mode:** Pass `Label` and `Tooltip` explicitly.
-2. **Auto-Truncate Mode:** Pass `content` and optional `digits`. It will automatically truncate words (or chars if a single word) and put the full string in the tooltip.
+2. **Auto-Truncate Mode:** Pass `content` and optional `digits`. The label is shortened to `digits` words (or `digits` characters if the content has no spaces), followed by `…`, and the full text is shown in the tooltip.
 
 ## Props
+
+Property names are case-insensitive.
 
 | Prop    | Type   | Default | Description |
 |---------|--------|---------|-------------|
 | `Label`   | `string` | `""`      | Explicit label text. (Mode 1) |
-| `Tooltip` | `string` | `""`      | Explicit tooltip text, shown when hovering the icon. (Mode 1) |
-| `content` | `string` | `""`      | The full text content. (Mode 2) |
-| `digits`  | `int`    | `null`    | How many words (or chars if no spaces) to keep from `content`. If omitted, full `content` is shown with no tooltip. (Mode 2) |
-| `Class`   | `string` | `""`      | Additional CSS classes appended to the wrapper element. |
+| `Tooltip` | `string` | `""`      | Explicit tooltip text. When set, an info icon is shown after the label. (Mode 1) |
+| `content` | `string` | `""`      | The full text content. When provided, it replaces `Label`. (Mode 2) |
+| `digits`  | `int`    | `null`    | How many words (or characters if there are no spaces) to keep from `content`. Strings such as `"2"` are accepted. If omitted, `0` or less, or not a number, the full `content` is shown with no tooltip. (Mode 2) |
+| `Class`   | `string` | `""`      | CSS classes for the wrapper. When set, they **replace** the default classes `d-inline-flex align-items-center gap-1 fw-bold` (only `lbt-wrapper` is kept). |
+
+Notes:
+
+- Nothing is rendered when the resulting label is empty or whitespace.
+- Words are split on spaces only (tabs and line breaks do not separate words), and the shortened label joins them with single spaces.
+- If `content` fits within `digits` (or `digits` is not given) and `Tooltip` is also passed, the explicit `Tooltip` is still shown.
 
 ## Examples
 
@@ -55,6 +63,29 @@ Displays a label with an optional help tooltip icon. Supports two modes:
     digits = 2
 })
 ```
+
+Renders the label `Very long…` with the full text in the tooltip.
+
+## Behavior
+
+- The tooltip is shown with CSS when the pointer is over any part of the wrapper (label or icon), or when the icon has keyboard focus.
+- The tooltip appears above the label, aligned to its inline-end edge (logical CSS properties, so it follows the page direction).
+- No JavaScript is used.
+- The `<style>` block is intended to be written once per page, but the check stores its flag in the partial's own copy of `ViewData`, which is not shared between partial calls, so it is written for every LabelTip.
+
+## Accessibility
+
+- The info icon is focusable (`tabindex="0"`) with `role="button"` and an `aria-label` containing the full tooltip text.
+- The tooltip element has `role="tooltip"` but is not linked to the icon with `aria-describedby`.
+- There is no `Escape` handling to dismiss the tooltip.
+
+## Security Notes
+
+`Label`, `Tooltip`, and `content` are output with normal Razor encoding.
+
+## Dependencies
+
+Bootstrap 5 CSS for the default wrapper classes (`d-inline-flex`, `align-items-center`, `gap-1`, `fw-bold`).
 
 </TabItem>
 

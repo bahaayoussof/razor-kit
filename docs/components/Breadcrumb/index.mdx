@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 
 <Tabs>
 <TabItem value="guide" label="Guide" default>
-The `_Breadcrumb.cshtml` is a reusable Razor component that displays a navigation breadcrumb trail using Bootstrap's breadcrumb component.
+The `_Breadcrumb.cshtml` partial view renders a navigation breadcrumb trail using Bootstrap's breadcrumb component.
 
 ## UI Preview
 
@@ -18,10 +18,16 @@ The `_Breadcrumb.cshtml` is a reusable Razor component that displays a navigatio
 
 ---
 
+## Location
+
+`Views/Shared/UI/_Breadcrumb.cshtml`
+
 ## Model Structure
-The component expects a `List&lt;(string Name, string Url)>` model where each item contains:
+The model type is `List<(string Name, string Url)>` (a list of tuples; the element names are optional). Each item contains:
 - `Name`: The display text for the breadcrumb item
-- `Url`: The URL link for the breadcrumb item
+- `Url`: The link for the breadcrumb item
+
+The list must not be `null`.
 
 ## Basic Usage
 
@@ -34,7 +40,7 @@ public IActionResult MyPage()
         ("Home", "/"),
         ("Section", "/section"),
         ("Subsection", "/section/subsection"),
-        ("Current Page", "")  // Empty URL for current page (active)
+        ("Current Page", "")  // Empty URL for the current page
     };
 
     return View(breadcrumb);
@@ -48,7 +54,7 @@ public IActionResult MyPage()
     ViewData["Title"] = "My Page";
 }
 
-<partial name="_Breadcrumb" model="Model" />
+<partial name="UI/_Breadcrumb" model="Model" />
 ```
 
 ### Example Implementation
@@ -61,19 +67,28 @@ public IActionResult MyPage()
         ("تفاصيل القضية", "/cases/123")
     };
 }
-<partial name="_Breadcrumb" model="breadcrumb" />
+<partial name="UI/_Breadcrumb" model="breadcrumb" />
 ```
 
 ## Features
-- **RTL Support**: Automatically displays breadcrumbs from right to left
-- **Active State**: The last item in the list is automatically marked as active (non-clickable)
-- **Responsive**: Hidden on mobile devices (`d-none d-sm-flex`), visible on small screens and above
-- **Custom Styling**: Links use `#54565B` color, active item uses `#9DA4AE`
+- **Right-to-left**: The list always has `dir="rtl"`, so items run from right to left regardless of the page direction.
+- **Last item**: The link of the last item gets an `active` class and is shown in `#9DA4AE`. It remains a normal, clickable link (an empty `Url` links to the current page).
+- **Responsive**: Hidden below Bootstrap's `sm` breakpoint (`d-none d-sm-flex`), visible from 576px up.
+- **Styling**: Links use `#54565B`; the separator is `>` (set with `--bs-breadcrumb-divider`).
 
-## Notes
-- The breadcrumb uses Bootstrap's `breadcrumb` component with `aria-label="breadcrumb"` for accessibility
-- The separator between items is `>` (defined by `--bs-breadcrumb-divider`)
-- The last item should typically have an empty URL or the current page URL to indicate it's the active location
+## Global Styles
+
+The partial outputs a `<style>` block with **unscoped** rules for `a`, `a:hover`, and `a.active`. They apply to every link on the page, not only the breadcrumb: all links become `#54565B` without underline, and any link with the `active` class becomes `#9DA4AE`. The block is written every time the partial is rendered.
+
+## Accessibility
+- The `<nav>` has `aria-label="breadcrumb"`.
+- `aria-current="page"` is set on **every** item, not only the last one, so assistive technology reports each item as the current page.
+
+## Security Notes
+- `Name` and `Url` use normal Razor encoding. URLs are not validated, so do not build them from untrusted input (for example, a `javascript:` URL would be rendered as a link).
+
+## Dependencies
+- Bootstrap 5 CSS (`breadcrumb`, `breadcrumb-item`, `d-none`, `d-sm-flex`)
 
 </TabItem>
 

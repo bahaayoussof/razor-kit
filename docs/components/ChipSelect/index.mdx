@@ -10,7 +10,7 @@ import TabItem from '@theme/TabItem';
 <TabItem value="guide" label="Guide" default>
 # ChipSelect
 
-A searchable multi-select dropdown component for ASP.NET Core Razor that displays selections as dismissible chips and synchronizes with hidden form inputs for standard form submission.
+A searchable multi-select dropdown for ASP.NET Core Razor views. Selections are shown as removable chips and submitted through hidden form inputs. The component is written in plain JavaScript and has no jQuery or Bootstrap dependency.
 
 ## UI Preview
 
@@ -21,7 +21,7 @@ A searchable multi-select dropdown component for ASP.NET Core Razor that display
 
 ---
 
-Render the partial view passing an anonymous object or model dictionary:
+Render the partial view passing an anonymous object:
 
 ```cshtml
 @await Html.PartialAsync("UI/_ChipSelect", new {
@@ -42,36 +42,69 @@ Render the partial view passing an anonymous object or model dictionary:
 
 ## Props
 
-### Razor Helper Props (`Model`)
+### Partial Model Props
+
+Property names are case-insensitive. Boolean props must be actual `bool` values; other types (such as the string `"false"`) are ignored and the default is kept.
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `id` | `string` | Auto-generated GUID | Container element ID. Required for JavaScript instance lookup. |
-| `name` | `string` | `"SelectedIds"` | Form field `name` used for generated hidden inputs. |
-| `label` | `string` | `""` | Top label displayed above the control. |
-| `placeholder` | `string` | `"اختر عناصر..."` | Text displayed in the control when empty. |
-| `searchPlaceholder` | `string` | `"بحث..."` | Watermark text inside the search input. |
-| `searchAriaLabel` | `string` | `""` | Accessibility label for the search input. |
-| `selectAllText` | `string` | `"تحديد الكل"` | Display text for the Select All dropdown option. |
-| `showImages` | `bool` | `true` | Show or hide circular avatar/icons in chips and options. |
+| `id` | `string` | `cs_` + 8 GUID hex chars | Container element ID, used for `ChipSelect.getInstance(id)`. Must be unique on the page. |
+| `name` | `string` | `"SelectedIds"` | Form field `name` used for the generated hidden inputs. |
+| `label` | `string` | `""` | Label displayed above the control. |
+| `placeholder` | `string` | `"اختر عناصر..."` | Text displayed in the control. |
+| `searchPlaceholder` | `string` | `"بحث..."` | Placeholder text inside the search input. |
+| `searchAriaLabel` | `string` | `""` | Accessible label for the search input (falls back to `searchPlaceholder`). |
+| `selectAllText` | `string` | `"تحديد الكل"` | Text of the "Select All" option. |
+| `showImages` | `bool` | `true` | Show or hide item images in chips and options. |
 | `allowSearch` / `searchable` | `bool` | `true` | Show or hide the search input. |
-| `allowSelectAll` | `bool` | `true` | Show or hide the Select All option. |
-| `allowClear` / `clearable` | `bool` | `true` | Show or hide the Clear All (×) button inside the control. |
-| `closeOnSelect` | `bool` | `false` | Close dropdown immediately upon selecting/unselecting. |
-| `maxSelections` | `int?` | `null` | Maximum allowed selections (`null` = unlimited). |
-| `items` | `IEnumerable` | `[]` | List of items: `&#123; id, text, secondaryText?, image? &#125;`. |
-| `selectedValues` | `IEnumerable` | `[]` | Initial selected IDs (`int` or `string`). |
+| `allowSelectAll` | `bool` | `true` | Show or hide the "Select All" option. |
+| `allowClear` / `clearable` | `bool` | `true` | Show or hide the clear-all (×) button in the control. |
+| `closeOnSelect` | `bool` | `false` | Close the dropdown after each select/unselect. |
+| `maxSelections` | `int?` | `null` | Maximum allowed selections. `null`, `0`, or a negative number means unlimited. |
+| `items` | `IEnumerable` | `[]` | Items with `id`, `text`, and optional `secondaryText` and `image`. |
+| `selectedValues` | `IEnumerable` | `[]` | Initially selected IDs (`int` or `string`). |
+
+### Item Shape
+
+Items are serialized to JSON with camelCase property names, so C# properties `Id`, `Text`, `SecondaryText`, and `Image` become `id`, `text`, `secondaryText`, and `image`.
+
+- `id` is required. Items without an `id` are dropped, and items with the same `id` (compared as strings) are de-duplicated. For example, a list of `SelectListItem` (which has `Value`/`Text`, not `Id`) renders no options.
+- `text` is shown in the option and chip; `secondaryText` is shown under it in the option.
+- `image` URLs are accepted if they are relative, `http(s)`, protocol-relative, or `data:image/...`; other schemes (such as `javascript:`) are ignored. Images that fail to load are hidden.
 
 ### JavaScript-only Options
 
-*These options are available in `instance.config` or when instantiating via JS:*
+These options are not read from the partial's model. They can be set on `instance.config` after initialization or passed when creating an instance with `new ChipSelect(element, options)`:
 
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `multiple` | `boolean` | `true` | Set to `false` for single-select mode. |
 | `onChange` | `Function` | `null` | Callback: `(selectedItems, selectedValues) => void`. |
-| `normalizeArabic` | `boolean` | `true` | Normalizes Arabic diacritics and Alef/Yaa variants in search. |
-| `noResultsText` | `string` | `"لا توجد نتائج"` | Empty state text when search yields no matches. |
+| `normalizeArabic` | `boolean` | `true` | Removes Arabic diacritics and unifies Alef/Yaa variants when searching. |
+| `noResultsText` | `string` | `"لا توجد نتائج"` | Text shown when the search has no matches. |
+| `clearAllAriaLabel` | `string` | `"مسح الكل"` | Accessible label of the clear-all button. |
+| `removeAriaPrefix` | `string` | `"إزالة: "` | Prefix of each chip's remove-button label. |
+| `partiallySelectedSuffix` | `string` | `"محدد جزئياً"` | Suffix added to "Select All" when some items are selected. |
+| `accessibleLabel` | `string` | `""` | Accessible name used when there is no `label`. |
+
+---
+
+## Form Submission
+
+One hidden input is rendered per selected item: `<input type="hidden" name="{name}" value="{id}" />`. ASP.NET Core can bind them to a collection, for example `List<int> AssignedLawyerIds`.
+
+- When nothing is selected, no input is submitted for `name`.
+- Only selected IDs that exist in `items` are submitted. IDs in `selectedValues` that are not in `items` are kept in `getSelectedValues()` but have no hidden input.
+- The component has no `required` option or validation.
+
+---
+
+## Behavior
+
+- Search matches the query (case-insensitive) against `text` and `secondaryText`.
+- In the UI, "Select All" selects or deselects the items that match the current search. `selectAll()` in JavaScript selects all loaded items and clears the search.
+- When `maxSelections` is reached, the remaining unselected options are disabled.
+- Clicking outside the component closes the dropdown.
 
 ---
 
@@ -137,11 +170,13 @@ cs.config.multiple = false;
 cs.config.closeOnSelect = true;
 ```
 
+Changing `multiple` after initialization only affects later interactions: selections made before the change are kept, and the listbox keeps its `aria-multiselectable="true"` attribute. To start in single-select mode, create the instance in JavaScript with `new ChipSelect(element, { multiple: false, ... })`.
+
 ---
 
 ## Built-in Functions
 
-Get an instance using `window.ChipSelect.getInstance(id)` or `window.getChipSelectInstance(id)`:
+Instances are created on `DOMContentLoaded` (or immediately if the page has already loaded). Get an instance using `window.ChipSelect.getInstance(id)` or `window.getChipSelectInstance(id)`:
 
 ```javascript
 const cs = window.ChipSelect.getInstance('lawyersSelect');
@@ -155,22 +190,22 @@ const ids = cs.getSelectedValues(); // ["1", "2"]
 ```
 
 ### `getSelectedItems()`
-Returns an array of full item objects that are currently selected.
+Returns the selected item objects that exist in the loaded items.
 - **Returns**: `object[]`
 ```javascript
 const items = cs.getSelectedItems(); // [{ id: 1, text: "أحمد محمود", ... }]
 ```
 
 ### `setSelectedValues(values)`
-Replaces current selections with the provided ID list.
-- **Parameters**: `values: Array&lt;string|number>`
+Replaces current selections with the provided ID list. Non-array arguments are ignored.
+- **Parameters**: `values: Array<string|number>`
 - **Returns**: `void`
 ```javascript
 cs.setSelectedValues([2, 3]);
 ```
 
 ### `select(id)`
-Selects an individual item by its ID.
+Selects an individual item by its ID (ignored when `maxSelections` is reached).
 - **Parameters**: `id: string|number`
 - **Returns**: `void`
 ```javascript
@@ -186,22 +221,22 @@ cs.unselect(1);
 ```
 
 ### `selectAll()`
-Selects all items currently loaded into the component.
+Selects all items currently loaded into the component (multiple mode only, up to `maxSelections`).
 - **Returns**: `void`
 ```javascript
 cs.selectAll();
 ```
 
 ### `clear()` / `deselectAll()`
-Clears all selected values.
+Clears all selected values and the search text.
 - **Returns**: `void`
 ```javascript
 cs.clear();
 ```
 
 ### `setItems(items, options)`
-Replaces the component items list (or merges if `options.merge = true`).
-- **Parameters**: `items: object[]`, `options?: &#123; merge?: boolean &#125;`
+Replaces the component items list (or merges if `options.merge = true`). Existing selections are kept.
+- **Parameters**: `items: object[]`, `options?: { merge?: boolean }`
 - **Returns**: `void`
 ```javascript
 cs.setItems([
@@ -219,11 +254,13 @@ cs.addItems([{ id: 12, text: "مضاف جديد" }]);
 ```
 
 ### `destroy()`
-Cleans up event listeners, timers, and DOM elements.
+Removes the component's markup and keyboard listener, clears timers, and unregisters the instance.
 - **Returns**: `void`
 ```javascript
 cs.destroy();
 ```
+
+`onChange` is called whenever the selection actually changes, including changes made through these methods.
 
 ---
 
@@ -248,8 +285,8 @@ const values = cs.getSelectedValues(); // ['1', '2']
 const items  = cs.getSelectedItems();  // [{ id: 1, text: '...' }]
 
 // Global Quick Helpers
-const values = window.getChipSelectValues('mySelect');
-const items  = window.getChipSelect('mySelect');
+const valuesFromHelper = window.getChipSelectValues('mySelect');
+const itemsFromHelper  = window.getChipSelect('mySelect');
 
 // Modify Selections
 cs.setSelectedValues([3, 4]);
@@ -268,6 +305,39 @@ cs.config.onChange = (selectedItems, selectedValues) => {
 // Teardown
 cs.destroy();
 ```
+
+---
+
+## Keyboard
+
+| Key | Closed | Open |
+|---|---|---|
+| `Enter` / `Space` | Opens the dropdown | Toggles the highlighted option (`Space` types a space in the search input). `Enter` never submits the form. |
+| `↓` / `↑` | Opens and highlights the first / last option | Moves the highlight (wraps around) |
+| `Home` / `End` | — | First / last option (not while typing in the search input) |
+| `Escape` | — | Closes and returns focus to the control |
+| `Tab` | — | Closes the dropdown |
+
+## Accessibility
+
+- The container has `role="combobox"`, `tabindex="0"`, `aria-expanded`, `aria-haspopup="listbox"`, `aria-controls`, and `aria-labelledby` (the label) or an `aria-label` fallback.
+- The dropdown has `role="listbox"` (with `aria-multiselectable` in multiple mode); options use `role="option"`, `aria-selected`, and `aria-disabled`. The highlighted option is exposed with `aria-activedescendant`.
+- The search input, clear-all button, and each chip's remove button have accessible labels.
+- It has not been tested with specific screen readers in this repository.
+
+## RTL
+
+Spacing uses logical properties (`margin-inline-start`), so the layout follows the page direction. Default texts are Arabic.
+
+## Security Notes
+
+- Item text, secondary text, labels, and IDs are HTML-escaped before being inserted; image URLs are filtered as described above.
+- Items and selected values are embedded with `System.Text.Json`, whose default encoder escapes `<`, `>`, and `&`.
+
+## Styles and Compatibility
+
+- The styles are injected into `<head>` once per page. They use global `.cs-*` class names. `SmartSelect` also uses `.cs-dropdown`, `.cs-search-input`, and `.cs-no-results` with different rules, so the two components can affect each other's styling when used on the same page.
+- Requires a modern browser (the script uses classes, `??=`, and `CSS.escape`).
 
 </TabItem>
 

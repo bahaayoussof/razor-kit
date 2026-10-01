@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 
 <Tabs>
 <TabItem value="guide" label="Guide" default>
-The `_AttachBox` partial view provides a consistent UI element for displaying and interacting with an attached file. It displays the file's name alongside an automatically determined icon representing its format, and offers standard actions like previewing and downloading the file directly.
+The `_AttachBox` partial view renders a single attachment row: the file name, a preview button, and a download link. Both actions use a URL built from an action path and the file's ID.
 
 ## UI Preview
 
@@ -28,25 +28,34 @@ You can use the partial in your views as follows:
 
 ### Model Property Table
 
+The model is an anonymous object; property names are case-insensitive.
+
 | Property | Type   | Required | Default Value | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **FileId** | `string` | **Yes** | `""` | The unique ID of the attachment from the database or DMS. E.g., `"27131"`. The download and preview URLs will be built based on this ID. |
-| **FileName** | `string` | **Yes** | `""` | The display name of the file (e.g., `"Resume.pdf"`). |
-| **Id** | `string` | No | Generated string | The HTML `id` attribute for the container element. If not specified, a unique auto-ID in the format `attach-&#123;random&#125;` will be generated automatically. |
+| **FileId** | `string` | **Yes** | `""` | The ID of the attachment, e.g. `"27131"`. The download and preview URLs are `{ActionUrl}/{FileId}`. |
+| **FileName** | `string` | No | Derived from `FileId` | The display name of the file (e.g., `"Resume.pdf"`). When empty, the last path segment of `FileId` (without any query string) is used. |
+| **Id** | `string` | No | Generated string | The HTML `id` attribute of the container. If not specified, an ID in the format `attach-{8 hex chars}` is generated. |
+| **ActionUrl** | `string` | No | `"/Common/PreviewAttachment"` | Base path for the download and preview URLs. |
 
-## Feature Set
+## Behavior
 
-- **File Icon Autodetection:** The file extension (parsed from `FileName` or `FileId`) determines the file type (e.g., pdf, word, excel, image). The icon is rendered dynamically based on this type, though in the current version, a generic layout applies.
-- **Inline Preview:** Clicking the preview (eye) icon will open the file in the shared inline Global Preview Modal (`_FilePreview`). This works seamlessly for images, text, code, PDFs, and Office files across devices.
-- **Direct Download:** The download icon constructs the hyperlink using the `FileId` and forces a download via the HTML5 `download` attribute on the anchor tag.
+- **File type:** The extension of `FileName` (or `FileId`) is mapped to `pdf`, `image`, `word`, `excel`, or `other`. The type is only passed to the preview function; no file-type icon is rendered.
+- **Preview:** The preview (eye) button calls the global `openAttachmentFromUrl(fileId, fileName, fileType)`, which builds `{ActionUrl}/{FileId}` and, in order of availability:
+  1. calls `showFilePreview(url, fileName, fileType)` (from the `_FilePreview` partial),
+  2. calls `window.openPdfViewer(url, fileName)`,
+  3. opens the URL in a new tab.
+
+  If `FileId` is empty, it shows a status modal with the message `الملف غير متاح` (file not available).
+- **Download:** The download icon is a link to `{ActionUrl}/{FileId}` with the `download` attribute set to the file name. Browsers only honor `download` for same-origin URLs.
+- `FileId` is inserted into the URL as-is (not URL-encoded).
 
 ## Examples
 
-### Using only FileId
+### Minimal Example
 ```html
 <partial name="UI/_AttachBox" model='new { FileId = "48392", FileName = "Consultation Summary.docx" }' />
 ```
-*Note: Make sure that `FileId` parses to a meaningful file route or the file name must be supplemented since extracting a name from an ID alone returns the ID itself.*
+*Note: `FileName` can be omitted. The display name is then taken from the last path segment of `FileId`, which for a plain ID such as `"48392"` is the ID itself, and no file type can be detected.*
 
 ### Full Example with all arguments
 ```html
@@ -54,10 +63,33 @@ You can use the partial in your views as follows:
     model='new {
         FileId = "8582",
         FileName = "Consultation Summary.docx",
-        Id = "my-custom-attach-box"
+        Id = "my-custom-attach-box",
+        ActionUrl = "/Common/PreviewAttachment"
     }'
 />
 ```
+
+## Dependencies
+
+- **`UI/_FilePreview` partial** (provides `showFilePreview`) and the **`UI/_StatusModal`** partial (provides `showStatusModal`). Both are rendered by every AttachBox instance, so a page with several AttachBoxes renders them several times. `_FilePreview` is not documented in this repository.
+- An endpoint at `{ActionUrl}/{FileId}` that returns the file.
+- Bootstrap 5 CSS (`mb-2`, `text-truncate`).
+
+The partial outputs its `<style>` block (`.ab-*` classes) every time it is rendered.
+
+## Known Limitations
+
+- `window.openAttachmentFromUrl` is defined only once per page and uses the `ActionUrl` of the **first** AttachBox rendered. Later instances with a different `ActionUrl` still preview from the first path (their download links are correct). AttachmentCard defines a function with the same name, so on a page with both, whichever component renders first decides the preview path for both.
+
+## Accessibility
+
+- The preview button and download link contain only icons and have only a `title` (`معاينة` / `تحميل`), no `aria-label`.
+- The file name is shown with `text-truncate` and its full text in a `title` attribute.
+
+## Security Notes
+
+- `FileId` and `FileName` are placed inside a JavaScript string in the preview button's inline `onclick` attribute. Razor's HTML encoding is decoded by the browser before the script runs, so a value containing `'` breaks the handler, and a crafted value can execute script. Only use trusted, sanitized IDs and file names.
+- In the rest of the markup, values use normal Razor encoding.
 
 </TabItem>
 

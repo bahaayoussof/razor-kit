@@ -4,7 +4,7 @@ Reusable UI Components for ASP.NET Core MVC.
 
 This repository contains the RazorKit documentation website, built with [Docusaurus](https://docusaurus.io/). Each component is documented as a Razor partial view, with usage examples, a parameter reference, and its source code (Razor, CSS, and JavaScript).
 
-> **Status:** early and actively developed. Some component names still use legacy `Momah` identifiers (for example `MomahSelect` and `MomahTable`); these will be migrated in a later stage.
+> **Status:** early and actively developed.
 
 ---
 
@@ -71,7 +71,7 @@ npm run serve      # serve the production build locally
 ## Roadmap
 
 - [ ] Interactive Playground
-- [ ] Migrate legacy `Momah` component identifiers to RazorKit naming
+- [x] Rename legacy component names (`MomahSelect` → `SmartSelect`, `MomahTable` → `DataTable`)
 - [ ] Additional UI components
 - [ ] Theme customization
 - [ ] Accessibility improvements

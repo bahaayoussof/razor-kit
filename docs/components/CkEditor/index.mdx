@@ -8,7 +8,11 @@ import TabItem from '@theme/TabItem';
 
 <Tabs>
 <TabItem value="guide" label="Guide" default>
-The `_CKEditor.cshtml` is a reusable Razor partial view that integrates CKEditor 5 (Classic Build) with a Microsoft Word-style unified toolbar, custom font formatting engine, multi-device responsive layout, asset deduplication, and automatic validation.
+The `_CKEditor.cshtml` partial view wraps the CKEditor 5 Classic build with a custom Word-style toolbar, a custom font formatting plugin, a responsive toolbar layout, one-time asset loading, and required-field validation.
+
+:::note
+This guide and its examples use the name `_CKEditor`, while the source tab and the Playground use `_CkEditor.cshtml`. On case-sensitive file systems (for example Linux), the name used in `partial name` / `PartialAsync` must match the actual file name exactly.
+:::
 
 ## UI Preview
 
@@ -20,7 +24,7 @@ The `_CKEditor.cshtml` is a reusable Razor partial view that integrates CKEditor
 
 ## Basic Usage
 
-Render the partial using an anonymous object or pass editor ID as a string:
+Render the partial using an anonymous object or pass the editor ID as a string:
 
 ```razor
 <!-- Anonymous object model -->
@@ -51,62 +55,68 @@ Render the partial using an anonymous object or pass editor ID as a string:
 
 ## Available Properties
 
+Property names are case-insensitive.
+
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `Id` | `string` | **Required** | Unique ID for the textarea and editor instance. |
-| `Label` | `string` | `""` | Label text displayed above editor. |
-| `Required` | `bool` | `false` | When true, renders red asterisk and enables non-empty validation. |
-| `ReadOnly` | `bool` | `false` | When true, locks editor in read-only mode and disables toolbar controls. Supports `readOnly` or `@readonly`. |
-| `Placeholder`| `string` | `Label` value | Placeholder text shown inside editor when empty. |
-| `Height` | `string` | `"160px"` | Fixed editor height (e.g. `"250px"`, `"50vh"`) or `"auto"`. |
-| `Value` | `string` | `""` | Initial HTML content loaded into editor. |
+| `Id` | `string` | **Required** | Used as the textarea's `id` and `name` and for the editor instance. If it is empty, no editor markup is rendered. |
+| `Label` | `string` | `""` | Label text displayed above the editor. Also used in the error message. |
+| `Required` | `bool` | `false` | Renders a red asterisk and enables non-empty validation. A `bool` or a string such as `"true"`. |
+| `ReadOnly` | `bool` | `false` | Locks the editor in read-only mode and disables the custom toolbar controls. Accepts `readOnly`, `ReadOnly`, or `@readonly`. |
+| `Placeholder`| `string` | `Label` value | Placeholder text shown inside the editor when empty. |
+| `Height` | `string` | `"160px"` | Editor height (e.g. `"250px"`, `"50vh"`) or `"auto"`. Also used as the minimum height. |
+| `Value` | `string` | `""` | Initial HTML content loaded into the editor. |
+
+The editor content is kept in the `<textarea name="{Id}">`, so it is submitted with the form as an HTML string.
 
 ---
 
 ## Word-Style Toolbar Features
 
-Toolbar is organized into 5 functional groups with custom `SharedFontFormattingPlugin` backing:
+The toolbar is organized into 5 groups. Formatting other than bold/italic, headings, lists, links, tables, and quotes is applied by the custom `SharedFontFormattingPlugin` and stored as inline `style` attributes in the content.
 
 1. **Styles**: Dropdown for `Paragraph`, `Heading 1`, `Heading 2`, and `Heading 3`.
 2. **Font & Formatting**:
-   - **Font Family**: Dropdown with Arabic & English options (*The Sans Arabic*, *مهند*, *Arial*, *Tahoma*, *Times New Roman*).
-   - **Font Size**: Sizing options from 10px to 72px.
-   - **Style Buttons**: Bold, Italic, Underline (`Ctrl+U`), Strikethrough.
-   - **Text Color Control**: Word-style 10-column theme color grid, standard colors, and automatic black reset.
-   - **Highlight Color Control**: Word-style 15-color highlighter grid and "no color" reset.
+   - **Font Family**: *The Sans Arabic*, *مهند*, *Arial*, *Tahoma*, *Times New Roman*. The Arabic fonts are only displayed if they are available on the user's device or loaded by your application.
+   - **Font Size**: 10px to 72px.
+   - **Style Buttons**: Bold, Italic, Underline, Strikethrough. The underline button's tooltip mentions `Ctrl+U`, but the component does not register that keyboard shortcut.
+   - **Text Color Control**: 10-column theme color grid, 10 standard colors, and an automatic (black) reset.
+   - **Highlight Color Control**: Highlight color grid and a "no color" reset.
 3. **Paragraph**:
    - Bulleted list, numbered list, indent, and outdent.
-   - 4-way alignment: Right, Center, Left, and Justify.
+   - Alignment: Right, Center, Left, and Justify.
 4. **Insert**:
    - Link, Table (with custom SVG icons), and Blockquote.
 5. **History**:
    - Undo and Redo.
 
+The editor is created with `language: 'ar'`, so the content is right-to-left.
+
 ---
 
 ## Responsive Toolbar Layout
 
-Toolbar adapts across 3 viewport breakpoints:
+The toolbar adapts across 3 viewport breakpoints:
 
-- **Desktop (≥ 992px)**: Unified single-line ribbon layout.
-- **Tablet (768px – 991.98px)**: Controlled two-row wrap layout dividing font formatting controls from paragraph and insertion tools.
-- **Mobile (&lt; 768px)**: Single-row horizontal swipe toolbar with smooth touch scrolling and slim scrollbar.
+- **Desktop (≥ 992px)**: Single-line layout.
+- **Tablet (768px – 991.98px)**: Two-row layout separating font formatting controls from paragraph and insertion tools.
+- **Mobile (&lt; 768px)**: Single-row horizontally scrolling toolbar.
 
 ---
 
-## Asset Deduplication
+## Asset Loading
 
-Scripts (`ckeditor.js`) and component styles are loaded once per HTTP request via Razor `Context.Items["CKEditor_Assets_Loaded"]`. Multiple partial calls on one page share a single asset payload.
+The CKEditor script (`~/ckeditor5-build-classic/ckeditor.js`), the component styles, and the `CKEditorManager` script are output once per HTTP request, tracked with `Context.Items["CKEditor_Assets_Loaded"]`. Multiple editors on one page share them. Each editor is initialized on `DOMContentLoaded` (or immediately if the page has already loaded).
 
 ---
 
 ## Advanced JavaScript API
 
-The partial exposes a global `window.CKEditorManager` orchestrator.
+The partial exposes a global `window.CKEditorManager` object.
 
 ### 1. Programmatic & Form Validation
 
-The component validates on editor blur (`change:isFocused`) and intercepts form `submit` events scoped to the parent form:
+The component validates when the editor loses focus and on the `submit` event of the parent form (a capturing listener on `document` that calls `validateAll(form)` and prevents submission if it fails):
 
 ```javascript
 // Validate all CKEditor instances in a specific form or container
@@ -116,15 +126,19 @@ const isFormValid = window.CKEditorManager.validateAll(form);
 // Validate a specific editor element
 const specificEditor = document.getElementById('myEditorId');
 if (specificEditor.validate) {
-    const isValid = specificEditor.validate(true); // Pass true to autofocus if invalid
+    const isValid = specificEditor.validate(true); // Pass true to focus the editor if invalid
 }
 ```
 
-Validation strips HTML tags and non-breaking spaces (`&nbsp;`) to ensure actual text is entered. When invalid, toggles `.is-invalid` on `.ckeditor-component-wrapper` and displays `.ckeditor-error-message`.
+Validation strips HTML tags and `&nbsp;` from the editor data and checks that text remains. When invalid, it adds `.is-invalid` to `.ckeditor-component-wrapper`, which shows `.ckeditor-error-message` (`{Label} مطلوب`). Editors without `Required` are always valid.
+
+:::caution
+The hidden source `<textarea>` keeps the native `required` attribute. When a required editor is empty, the browser's own validation stops the submission **before** the `submit` event fires, and it cannot show its message on the hidden field (Chrome logs "An invalid form control ... is not focusable"). In that case the component's error message is only shown after the editor loses focus, or if the form has the `novalidate` attribute.
+:::
 
 ### 2. Accessing CKEditor Instance
 
-Each DOM `&lt;textarea>` element stores its active CKEditor instance:
+Each `<textarea>` element stores its CKEditor instance once initialization has finished:
 
 ```javascript
 const editorElement = document.getElementById('myEditorId');
@@ -137,13 +151,15 @@ console.log(editorInstance.getData());
 editorInstance.setData('<p>Updated text</p>');
 ```
 
+`CKEditorManager.init(id, options)` returns a promise that resolves to the editor (or `null` on failure).
+
 ### 3. Data Synchronization & jQuery Validation
 
-The underlying textarea value synchronizes with CKEditor data on every change. If jQuery Validation is loaded on the page, the component automatically triggers `$form.validate().element(element)`.
+The underlying textarea value is updated with the editor data on every change. If jQuery is loaded and the parent form has a jQuery Validation validator, the component calls `$form.validate().element(element)` on each change.
 
 ### 4. Backward Compatibility Helpers
 
-Legacy helper functions remain mapped to `CKEditorManager`:
+Legacy helper functions are mapped to `CKEditorManager`:
 
 ```javascript
 window.initSharedCKEditor(id, options);
@@ -154,17 +170,9 @@ window.validateAllCKEditors(container);
 
 ## Styling & CSS Variables
 
-Editor height and theme colors use scoped CSS custom properties:
+The editor height is set from the `Height` property: the partial writes `--editor-height` / `--editor-min-height` on the component's own wrapper and sets the height directly on the editable area. Setting these variables on an ancestor element therefore has no effect; use `Height` instead.
 
-```css
-/* Custom container height override */
-.my-custom-container {
-    --editor-height: 450px;
-    --editor-min-height: 200px;
-}
-```
-
-Configurable root CSS variables:
+The toolbar colors are defined as CSS variables on `:root` and can be overridden:
 
 | Variable | Default | Purpose |
 | :--- | :--- | :--- |
@@ -175,6 +183,26 @@ Configurable root CSS variables:
 | `--editor-toolbar-active-border` | `#026b66` | Active border color |
 | `--editor-toolbar-height` | `32px` | Toolbar button/trigger height |
 | `--ck-error-color` | `#dc3545` | Validation border and label color |
+
+---
+
+## Dependencies
+
+- **CKEditor 5 Classic build** served at `~/ckeditor5-build-classic/ckeditor.js` (not included). The script uses `editor.enableReadOnlyMode()`, which is available in CKEditor 5 v34 and later. CKEditor 5 is licensed separately (GPL 2.0 or later, or a commercial license).
+- **Bootstrap 5 CSS** for the label and textarea classes (`form-label`, `form-control`, `fw-bold`, `text-danger`, spacing utilities).
+- **jQuery and jQuery Validation**: optional, only used if present.
+
+## Accessibility
+
+- The editing area and the native CKEditor toolbar buttons use CKEditor's own accessibility support.
+- The custom toolbar buttons, dropdowns, and color controls have `aria-label`s, and the dropdowns and color pickers set `aria-haspopup` and `aria-expanded`. Color swatches are labelled with their hex code.
+- The `<label>` points to the hidden source textarea, so clicking it does not focus the editor.
+- The error message is not linked to the editor with `aria-describedby`.
+
+## Security Notes
+
+- `Value` is HTML and is loaded into the editor, and the submitted value is HTML. CKEditor keeps only content its loaded plugins support. The configuration requests General HTML Support with all elements and attributes allowed; this only takes effect if your CKEditor build includes the General HTML Support plugin. Sanitize the submitted HTML on the server before storing or displaying it.
+- `Id`, `Label`, `Placeholder`, and `Height` use normal Razor encoding.
 
 </TabItem>
 

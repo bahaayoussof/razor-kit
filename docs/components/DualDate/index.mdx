@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 
 <Tabs>
 <TabItem value="guide" label="Guide" default>
-Dual-segment date picker. Displays Hijri and Gregorian dates side by side. Supports optional date range limits.
+Hijri date picker for ASP.NET Core MVC views. The user picks a Hijri date from an Umm al-Qura calendar, and the matching Gregorian date is filled in automatically and shown next to it. Optional `minDate` / `maxDate` limits disable dates outside a range.
 
 ## UI Preview
 
@@ -46,57 +46,65 @@ Dual-segment date picker. Displays Hijri and Gregorian dates side by side. Suppo
 
 ### Tuple Model
 
+Elements are read by position. The second element must be a `bool`; any other type throws an exception when the partial renders.
+
 | Index | Type     | Required | Description                                    |
 | ----- | -------- | -------- | ---------------------------------------------- |
 | `[0]` | `string` | Yes      | Label text                                     |
-| `[1]` | `bool`   | Yes      | Required validator toggle                      |
-| `[2]` | `string` | Yes      | Unique ID (used as Hijri input name and ID)    |
-| `[3]` | `string` | No       | Placeholder text (defaults to `"يوم/شهر/سنة"`) |
+| `[1]` | `bool`   | Yes      | Enables required validation                    |
+| `[2]` | `string` | Yes      | Unique ID (used as the Hijri input's `id` and `name`) |
+| `[3]` | `string` | No       | Placeholder text (defaults to `"يوم/شهر/سنة"` when missing or `null`) |
+| `[4]` | `string` | No       | `minDate` (see formats below)                  |
+| `[5]` | `string` | No       | `maxDate` (see formats below)                  |
 
 ### Anonymous Object Model
 
+Property names are matched case-insensitively.
+
 | Property      | Type     | Required | Description                                    |
 | ------------- | -------- | -------- | ---------------------------------------------- |
-| `id`          | `string` | Yes      | Unique ID for the component                    |
-| `label`       | `string` | Yes      | Label text displayed above the picker          |
-| `required`    | `bool`   | No       | Enables required validation (default: `false`) |
-| `placeholder` | `string` | No       | Placeholder text (default: `"يوم/شهر/سنة"`)   |
+| `id`          | `string` | Yes      | Unique ID. Used as the Hijri input's `id` and `name`. `hijriid` is accepted as an alias. |
+| `label`       | `string` | No       | Label text displayed above the picker and used in error messages. |
+| `required`    | `bool`   | No       | Enables required validation (default: `false`). Must be a `bool`; other types are ignored. |
+| `placeholder` | `string` | No       | Placeholder text for both inputs (default: `"يوم/شهر/سنة"`). An empty string removes the placeholder. |
 | `minDate`     | `string` | No       | Earliest selectable date (see formats below)   |
 | `maxDate`     | `string` | No       | Latest selectable date (see formats below)     |
 
-> **Note:** `id` must be unique per page.
+> **Note:** `id` must be unique per page and should contain only characters that are valid in a CSS ID selector (it is used in jQuery selectors). Without an `id`, the element IDs are empty and the picker does not work correctly.
+
+The partial has no parameter for an initial value.
 
 ---
 
 ## Date Limit Formats (`minDate` / `maxDate`)
 
-Both accept the same formats. Auto-detected — no flag needed.
+Both accept the same formats and are detected automatically.
 
 | Format         | Example          | Description                                      |
 | -------------- | ---------------- | ------------------------------------------------ |
-| `"today"`      | `"today"`        | Current date (Hijri)                             |
+| `"today"`      | `"today"`        | Current date (Hijri); case-insensitive           |
 | `"+Nm"`        | `"+1m"`, `"+2m"` | N months **after** today (Hijri calendar)        |
 | `"-Nm"`        | `"-1m"`, `"-3m"` | N months **before** today (Hijri calendar)       |
-| Hijri date     | `"1448-02-01"`   | Fixed Hijri date (`yyyy-MM-dd`, year ≤ 1600)     |
-| Gregorian date | `"2026-07-01"`   | Fixed Gregorian date (`yyyy-MM-dd`, year ≥ 1800) |
+| Hijri date     | `"1448-02-01"`   | Fixed Hijri date (`yyyy-MM-dd` or `yyyy/MM/dd`, year ≤ 1600) |
+| Gregorian date | `"2026-07-01"`   | Fixed Gregorian date (`yyyy-MM-dd` or `yyyy/MM/dd`, year > 1600) |
 
 ### Examples
 
 ```cshtml
-{{-- Last month to next 2 months --}}
-minDate="-1m"  maxDate="+2m"
+@* Last month to next 2 months *@
+<partial name="UI/_DualDate" model='new { id = "d1", label = "التاريخ", minDate = "-1m", maxDate = "+2m" }' />
 
-{{-- From today forward only --}}
-minDate="today"
+@* From today forward only *@
+<partial name="UI/_DualDate" model='new { id = "d2", label = "التاريخ", minDate = "today" }' />
 
-{{-- Fixed Hijri range --}}
-minDate="1448-01-01"  maxDate="1448-06-30"
+@* Fixed Hijri range *@
+<partial name="UI/_DualDate" model='new { id = "d3", label = "التاريخ", minDate = "1448-01-01", maxDate = "1448-06-30" }' />
 
-{{-- Fixed Gregorian range --}}
-minDate="2026-01-01"  maxDate="2026-12-31"
+@* Fixed Gregorian range *@
+<partial name="UI/_DualDate" model='new { id = "d4", label = "التاريخ", minDate = "2026-01-01", maxDate = "2026-12-31" }' />
 
-{{-- Mix: Gregorian min, relative max --}}
-minDate="2026-06-01"  maxDate="+1m"
+@* Mix: Gregorian min, relative max *@
+<partial name="UI/_DualDate" model='new { id = "d5", label = "التاريخ", minDate = "2026-06-01", maxDate = "+1m" }' />
 ```
 
 ### Edge Cases
@@ -107,16 +115,32 @@ minDate="2026-06-01"  maxDate="+1m"
 | Invalid format         | Limit ignored (treated as no limit)                   |
 | `null` / empty         | No restriction on that side                           |
 | Month-end day clamp    | If today = day 30 and target month has 29 days → 29  |
+| Invalid Gregorian day  | Rolls over like JavaScript `Date` (e.g. `2026-02-31` → March 3) |
+
+Limits only disable days in the calendar and are checked on validation; month navigation and the year list are not restricted.
+
+---
+
+## Behavior
+
+- Clicking the Hijri segment opens the calendar popover. The Gregorian segment is display-only.
+- Each day cell shows the Hijri day and the matching Gregorian `month/day`. Days from the previous and next months are shown and can be selected.
+- The year list shows the current view year −50 to +10.
+- Selecting a day fills both inputs, triggers jQuery `change` events on them, and closes the popover.
+- Clicking outside closes the popover. `Escape` closes only the year list.
+- When the partial is inside a Bootstrap modal, the calendar is redrawn on `shown.bs.modal`.
+- On every page load, the resolved limits are written to the browser console with `console.log`.
 
 ---
 
 ## Validation
 
-- Calendar UI: disabled cells are greyed out and unclickable
-- Form submit: hooks automatically; shows red border + error message
-- Error messages:
-  - Required + empty → `"&#123;Label&#125; مطلوب"`
-  - Out of range → `"&#123;Label&#125; خارج النطاق المسموح"`
+- Calendar UI: disabled cells are greyed out and cannot be clicked.
+- Form submit: a jQuery `submit` handler on the parent form runs validation and **prevents submission** when it fails. The container border turns red and an error message is shown.
+- Error messages (only rendered when `required`, `minDate`, or `maxDate` is set):
+  - Required + empty → `{Label} مطلوب`
+  - Out of range → `{Label} خارج النطاق المسموح`
+- After an out-of-range error has been shown, the error element keeps the out-of-range text, even if a later failure is a required-field error.
 
 ### Manual validate
 
@@ -128,12 +152,12 @@ var isValid = window.validateDDate["myDateId"]();
 
 ## Form Submission Values
 
-Two hidden inputs submitted with the form:
+Two read-only text inputs are submitted with the form:
 
 | Name        | Format       | Description         |
 | ----------- | ------------ | ------------------- |
-| `&#123;id&#125;`      | `yyyy/mm/dd` | Selected Hijri date |
-| `&#123;id&#125;-greg` | `yyyy/mm/dd` | Auto Gregorian date |
+| `{id}`      | `yyyy/mm/dd` | Selected Hijri date |
+| `{id}-greg` | `yyyy/mm/dd` | Matching Gregorian date |
 
 ---
 
@@ -145,6 +169,8 @@ Two hidden inputs submitted with the form:
 var dates = getDualDate("receiptDate");
 // { hijri: "1447/06/22", gregorian: "2025/12/12" }  or  null
 ```
+
+Returns `null` until the user selects a date in the calendar.
 
 ### `window.__ddDates[id]`
 
@@ -178,11 +204,37 @@ window.__ddDates["receiptDate"]; // { hijri, gregorian } or null
 
 ## Dependencies
 
-Load before the partial:
+Load before the partial (the partial's inline script uses jQuery immediately):
 
 - jQuery
 - `jquery.calendars.js`
+- `jquery.calendars.plus.js` (provides `formatDate`, which the partial uses), or a combined jQuery Calendars bundle that includes it
 - `jquery.calendars.ummalqura.js`
+
+The partial also loads the **IBM Plex Sans Arabic** font from Google Fonts (`fonts.googleapis.com`), once per request. Its CSS is output once per request; the script is output for every instance.
+
+---
+
+## Accessibility
+
+- The component has no ARIA roles or attributes.
+- The `<label>` element is not associated with the input (no `for` attribute).
+- The calendar can only be opened with a mouse click; there is no keyboard handler to open it or to move between days, and day cells are not focusable.
+- The month navigation buttons contain only icons and have no accessible name.
+- The native `required` attribute has no effect because the input is `readonly`; validation is done by the component's script.
+
+---
+
+## RTL
+
+The component is right-to-left only: the wrapper and calendar use `dir="rtl"`, and the month names, weekday names, labels, and segment badges (`هجري` / `ميلادي`) are in Arabic. The label always includes the hint `( التاريخ الهجري هو المستخدم )`.
+
+---
+
+## Security Notes
+
+- `minDate` and `maxDate` are written into a JavaScript string with `Html.Raw`, without encoding. Only pass trusted values; user-controlled values could inject script.
+- `label`, `placeholder`, and `id` use normal Razor encoding.
 
 </TabItem>
 

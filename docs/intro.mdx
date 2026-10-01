@@ -13,7 +13,7 @@ Welcome to the **RazorKit** documentation. RazorKit is a collection of reusable 
 
 - ⚡ **Razor partial views**: Components are rendered with `@await Html.PartialAsync("UI/_Name", model)` or the built-in `<partial name="UI/_Name" />` tag helper.
 - 🧾 **Documented parameters**: Each component page lists its parameters and includes usage examples and source code.
-- 📊 **Client-side grid**: `MomahTable` is a JavaScript data grid initialized with `MomahTable.render(...)`.
+- 📊 **Client-side grid**: `DataTable` is a JavaScript data grid initialized with `RazorKit.DataTable.render(...)`.
 
 ---
 
@@ -35,16 +35,16 @@ Inputs for data entry, validation, and user selection.
 | Component | Description |
 |---|---|
 | **DualDate** | Dual Hijri & Gregorian date selector with custom date constraints. |
-| **DateInput** | Standard single date picker with culture formatting. |
-| **DateRange** | Preset range date selector (Today, Last 7 Days, Month to Date). |
-| **InputField** | Formatted text input with icon slots and validation state. |
+| **DateInput** | Read-only date input (Hijri or Gregorian) initialized by an app-provided calendar function. |
+| **DateRange** | Single date or date-range picker (Hijri or Gregorian) with required validation. |
+| **InputField** | Labelled Bootstrap input with configurable type and an optional initial value. |
 | **AutoComplete** | AutoComplete & Search Select component with local/remote sources. |
-| **SelectInput** | Searchable dropdown selector with option grouping. |
-| **MomahSelect** | Custom styled select control with dynamic AJAX data loading. |
+| **SelectInput** | Native Bootstrap select with a label and an empty default option. |
+| **SmartSelect** | Custom single or multi-select with optional search, clear button, and a JavaScript API. |
 | **ChipSelect** | Multi-select dropdown with dismissible chips and search. |
-| **FileUpload** | Drag-and-drop file uploader with progress tracking. |
+| **FileUpload** | Drag-and-drop file picker with client-side size, type, and count checks. |
 | **AttachBox** | Compact file attachment container widget. |
-| **TextArea** | Multi-line text input with auto-height and character counter. |
+| **TextArea** | Labelled fixed-height Bootstrap textarea with an optional initial value. |
 | **CkEditor** | Rich text WYSIWYG editor wrapper for Razor views. |
 
 ### 📊 Data Display
@@ -52,19 +52,19 @@ Components designed for rendering structured server data cleanly.
 
 | Component | Description |
 |---|---|
-| **MomahTable** | Server-side datagrid with sorting, filtering, and pagination. |
+| **DataTable** | JavaScript table renderer with optional search box, column picker, and pagination controls. |
 | **Badge** | Status tag and category badge component. |
-| **AttachmentCard** | Document preview card with download and deletion actions. |
+| **AttachmentCard** | Attachment card with file name, description, and a preview button. |
 
 ### 💬 Overlays & Feedback
 Popovers, alerts, and modal dialogs for contextual user interaction.
 
 | Component | Description |
 |---|---|
-| **Tooltip** | Contextual popover tooltip with smooth micro-animations. |
+| **Tooltip** | Hover/focus tooltip with HTML content and viewport-aware placement. |
 | **LabelTip** | Inline form label hint helper icon. |
-| **Banner** | Full-width system notification alert banner. |
-| **Notification** | Toast notification manager engine. |
+| **Banner** | Informational banner with an optional icon and title. |
+| **Notification** | Static notice box with an icon, title, and message. |
 | **StatusModal** | State feedback modal dialog with custom action buttons. |
 
 ### 🧩 Navigation

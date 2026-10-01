@@ -161,32 +161,32 @@ export default function PreviewPane({ config, propsState, direction, colorMode, 
               border-color: #00a79d !important;
             }
 
-            /* --- MOMAH TABLE DARK MODE OVERRIDES --- */
-            [data-bs-theme="dark"] .momah-table-host .table-wrapper,
-            [data-bs-theme="dark"] .momah-table-host .jtable-main-container,
-            [data-bs-theme="dark"] .momah-table-host .table {
+            /* --- DATA TABLE DARK MODE OVERRIDES --- */
+            [data-bs-theme="dark"] .data-table-table-host .table-wrapper,
+            [data-bs-theme="dark"] .data-table-table-host .jtable-main-container,
+            [data-bs-theme="dark"] .data-table-table-host .table {
               background-color: #1e293b !important;
               border-color: #334155 !important;
               color: #f8fafc !important;
             }
 
-            [data-bs-theme="dark"] .momah-table-host .table thead,
-            [data-bs-theme="dark"] .momah-table-host .table thead tr,
-            [data-bs-theme="dark"] .momah-table-host .table thead th {
+            [data-bs-theme="dark"] .data-table-table-host .table thead,
+            [data-bs-theme="dark"] .data-table-table-host .table thead tr,
+            [data-bs-theme="dark"] .data-table-table-host .table thead th {
               background-color: #0f172a !important;
               color: #94a3b8 !important;
               border-color: #334155 !important;
             }
 
-            [data-bs-theme="dark"] .momah-table-host .table tbody tr,
-            [data-bs-theme="dark"] .momah-table-host .table tbody td {
+            [data-bs-theme="dark"] .data-table-table-host .table tbody tr,
+            [data-bs-theme="dark"] .data-table-table-host .table tbody td {
               background-color: #1e293b !important;
               color: #f8fafc !important;
               border-color: #334155 !important;
             }
 
-            [data-bs-theme="dark"] .momah-table-host input.form-control,
-            [data-bs-theme="dark"] .momah-table-host .page-link {
+            [data-bs-theme="dark"] .data-table-table-host input.form-control,
+            [data-bs-theme="dark"] .data-table-table-host .page-link {
               background-color: #334155 !important;
               color: #f8fafc !important;
               border-color: #475569 !important;

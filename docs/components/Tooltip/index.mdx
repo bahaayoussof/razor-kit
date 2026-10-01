@@ -10,8 +10,8 @@ import TabItem from '@theme/TabItem';
 <TabItem value="guide" label="Guide" default>
 > **Location:** `Views/Shared/UI/_Tooltip.cshtml`
 
-A self-contained hover tooltip for ASP.NET Core Razor views.
-Supports rich HTML content, multiple placements, RTL/LTR layouts, and auto viewport-aware flipping.
+A hover/focus tooltip for ASP.NET Core Razor views, written in CSS and plain JavaScript.
+Supports HTML content, four placements, RTL/LTR layouts, and viewport-aware flipping.
 
 ---
 
@@ -26,28 +26,31 @@ Supports rich HTML content, multiple placements, RTL/LTR layouts, and auto viewp
 
 ## How It Works
 
-- **Trigger** — an inline element (`<span>`) containing an optional text label and/or an icon.
-- **Bubble** — appears on `:hover` or `:focus-within` of the trigger.
-- **Smart positioning** — on hover the JS measures viewport space and automatically **flips** the bubble to the opposite side if there is not enough room.
-- **Horizontal shift** — if the bubble would overflow the left/right viewport edge it is shifted in-place.
-- **Shared assets** — the `&lt;style>` and `&lt;script>` blocks are injected **only once per page** regardless of how many tooltips are on the page (tracked via `ViewData`).
+- **Trigger** — an inline `<span>` containing an optional label and/or an icon.
+- **Bubble** — shown with CSS on `:hover` or `:focus-within` of the trigger.
+- **Smart positioning** — on hover or focus, the script measures the viewport space and **flips** the bubble to the opposite side if there is not enough room.
+- **Horizontal shift** — if the bubble would overflow the left/right viewport edge, it is shifted in place.
+- **Shared assets** — the `<style>` and `<script>` blocks are written for every tooltip (see [Notes & Gotchas](#notes--gotchas)); the script only registers its document-level listeners once.
 
 ---
 
 ## Props
 
+Property names are case-insensitive.
+
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `label` | `string` | *(empty)* | Trigger label text. HTML is allowed (e.g. `<span class='text-danger'>*</span>`). Omit for icon-only triggers. |
-| `content` | `string` | *(empty)* | Tooltip body. Accepts any HTML — plain text, `<ul>`, `<ol>`, `<strong>`, links, etc. **Required.** |
-| `icon` | `string` | *(empty)* | Full HTML for the trigger icon, e.g. `<i class="bi bi-info-circle"></i>`. At least one of `label` or `icon` must be provided. |
-| `placement` | `string` | `"top"` | Preferred bubble direction: `"top"` · `"bottom"` · `"start"` · `"end"`. The JS may flip this at runtime based on available space. |
+| `label` | `string` | *(empty)* | Trigger label. Rendered as raw HTML (e.g. `<span class='text-danger'>*</span>`). Omit for icon-only triggers. |
+| `content` | `string` | *(empty)* | Tooltip body. Rendered as raw HTML — plain text, `<ul>`, `<ol>`, `<strong>`, links, etc. **Required.** |
+| `icon` | `string` | *(empty)* | Raw HTML for the trigger icon, e.g. `<i class="bi bi-info-circle"></i>`. At least one of `label` or `icon` must be provided. |
+| `placement` | `string` | `"top"` | Preferred bubble position: `"top"` · `"bottom"` · `"start"` · `"end"` (see [Placement Reference](#placement-reference)). The script may flip it at runtime based on available space. |
 | `maxHeight` | `string` | `"500px"` | Maximum height of the bubble before it becomes scrollable. Any valid CSS length (`px`, `rem`, `vh`). |
 | `cssClass` | `string` | *(empty)* | Extra CSS class(es) appended to the outer wrapper `<span>`. |
-| `id` | `string` | *(auto)* | Stable id suffix used to build `tip-&#123;id&#125;`. Auto-generated (`Guid`) when omitted. Provide a value when you need a predictable DOM id (e.g. for testing or ARIA). |
+| `id` | `string` | *(auto)* | Suffix used to build the bubble id `tip-{id}`. When omitted, 8 random hex characters are used. Provide a value when you need a predictable DOM id. |
 
-> [!NOTE]
-> The partial renders **nothing** if `content` is empty, or if both `label` and `icon` are empty.
+:::note
+The partial renders **nothing** if `content` is empty, or if both `label` and `icon` are empty.
+:::
 
 ---
 
@@ -123,7 +126,7 @@ Supports rich HTML content, multiple placements, RTL/LTR layouts, and auto viewp
 
 ---
 
-### 5 — Stable id (for testing / ARIA references)
+### 5 — Stable id
 
 ```cshtml
 @await Html.PartialAsync("~/Views/Shared/UI/_Tooltip.cshtml", new {
@@ -133,7 +136,7 @@ Supports rich HTML content, multiple placements, RTL/LTR layouts, and auto viewp
 })
 ```
 
-Rendered DOM id will be `tip-docs-tip`.
+The bubble's DOM id will be `tip-docs-tip`.
 
 ---
 
@@ -144,7 +147,7 @@ These classes are available inside tooltip content and on the wrapper:
 | Class | Where to use | Effect |
 |---|---|---|
 | `tt-highlight` | Inside `content` HTML | Yellow highlight badge — `<span class="tt-highlight">keyword</span>` |
-| `tt-label-dashed` | Add to wrapper via `cssClass` | Adds a dashed underline to the label text |
+| `tt-label-dashed` | Add to wrapper via `cssClass` | Adds a dashed underline to the wrapper |
 
 **Highlight example:**
 
@@ -156,27 +159,19 @@ content = "يجب أن تكون <span class='tt-highlight'>الهوية الوط
 
 ## Placement Reference
 
-```
-        [top]          ← default
-          ↑
-[end] ←  TRIGGER  → [start]
-          ↓
-       [bottom]
-```
+- `top` / `bottom`: above / below the trigger, aligned to the trigger's inline-end edge.
+- `start` / `end` are **logical** (direction-aware). As implemented in the CSS:
+  - `start` places the bubble **after** the trigger in the reading direction: right of it in LTR pages, left of it in RTL pages.
+  - `end` places the bubble **before** the trigger: left of it in LTR pages, right of it in RTL pages.
 
-> [!IMPORTANT]
-> `start` and `end` are **logical** (RTL-aware), not physical:
-> - In **RTL** pages: `start` = right side, `end` = left side.
-> - In **LTR** pages: `start` = left side, `end` = right side.
-
-The JS will automatically flip `top ↔ bottom` or `start ↔ end` when the preferred side lacks viewport space.
+The script automatically flips `top ↔ bottom` or `start ↔ end` when the preferred side lacks viewport space. For `start` / `end`, the flip check measures the space on the opposite side to where the CSS draws the bubble (see [Notes & Gotchas](#notes--gotchas)). Page direction is detected from the `dir` attribute of `<html>` or `<body>` only.
 
 ---
 
 ## Scrollable Content
 
 When the content height exceeds `maxHeight`, the bubble becomes vertically scrollable automatically.
-A thin, styled scrollbar appears on overflow. Set `maxHeight` to control the threshold:
+A thin, styled scrollbar appears on overflow (in WebKit/Blink browsers). Set `maxHeight` to control the threshold:
 
 ```cshtml
 maxHeight = "300px"   @* default is 500px *@
@@ -186,22 +181,35 @@ maxHeight = "300px"   @* default is 500px *@
 
 ## Accessibility
 
-- The wrapper renders with `tabindex="0"` and `role="button"` — keyboard users can focus it with **Tab**.
-- The bubble carries `role="tooltip"` and is linked via `aria-describedby` to the trigger.
-- `dir="auto"` on the bubble ensures correct bidirectional text rendering inside mixed-language content.
+- The wrapper renders with `tabindex="0"` and `role="button"`, so keyboard users can focus it with **Tab**, which shows the bubble. The wrapper has no action of its own despite the `button` role.
+- The bubble carries `role="tooltip"` and is linked to the wrapper with `aria-describedby`.
+- `dir="auto"` on the bubble handles bidirectional text inside mixed-language content.
+- There is no `Escape` handling; the bubble closes only when hover/focus leaves the wrapper.
+- Interactive content (such as links) inside a `role="tooltip"` element is not well supported by assistive technology.
 
 ---
 
 ## Notes & Gotchas
 
-> [!WARNING]
-> The partial renders **nothing silently** if `content` is blank. Always pass a non-empty `content` value.
+:::warning
+The partial renders **nothing silently** if `content` is blank. Always pass a non-empty `content` value.
+:::
 
-> [!TIP]
-> If multiple tooltips appear on the same page, you do **not** need to worry about duplicate `&lt;style>` or `&lt;script>` tags — the partial injects them only once via `ViewData`.
+:::warning
+`label`, `icon`, and `content` are written with `Html.Raw` and are **not encoded**. Never pass user-supplied text to them without encoding or sanitizing it first.
+:::
 
-> [!NOTE]
-> The outer wrapper uses `position: relative` and `z-index: 10` at rest, rising to `99999` on hover. Make sure parent containers do **not** have `overflow: hidden` or a lower `z-index` that clips the bubble.
+:::note
+The `<style>` and `<script>` blocks are intended to be written once per page, but the check stores its flag in the partial's own copy of `ViewData`, which is not shared between partial calls. In practice they are written for every tooltip. This is harmless apart from the extra markup, because the script registers its listeners only once (`window._tooltipReady`).
+:::
+
+:::note
+For `start` / `end`, the CSS and the flip logic disagree about which side is which: the script measures the free space on the opposite side to where the CSS draws the bubble. Side placements may therefore not flip when they should, or flip when they should not. In LTR pages, the arrow of `start` and `end` bubbles is also drawn on the side away from the trigger (the arrow is only corrected for RTL pages).
+:::
+
+:::note
+The outer wrapper uses `position: relative` and `z-index: 10` at rest, rising to `99999` on hover. Make sure parent containers do **not** have `overflow: hidden` or a lower stacking context that clips the bubble.
+:::
 
 </TabItem>
 

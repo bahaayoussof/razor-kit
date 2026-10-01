@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 
 <Tabs>
 <TabItem value="guide" label="Guide" default>
-A UI component used to display a standardized card for a file attachment, showing its details and providing a built-in "preview" (عرض) button. It integrates directly with the generic `_FilePreview` modal for seamless viewing of supported document types (PDFs, Images, Word, Excel, etc.).
+A card for a file attachment showing an icon, the file name, a short description, and a "preview" (عرض) button. The button opens the file through the shared `_FilePreview` modal using a URL built from an action path and the file's ID.
 
 ## UI Preview
 
@@ -24,7 +24,7 @@ A UI component used to display a standardized card for a file attachment, showin
 ## Usage Examples
 
 ### Basic Usage
-The simplest way to use the component is by passing the minimal required fields, `FileName` and `FileId`. The component will infer the file type from the extension in the `FileName` (or `FileId` if provided as a URL).
+Pass `FileName` and `FileId`. The component infers the file type from the extension of `FileName` (or of `FileId` when `FileName` is empty).
 
 ```html
 @await Html.PartialAsync("UI/_AttachmentCard", new {
@@ -35,7 +35,7 @@ The simplest way to use the component is by passing the minimal required fields,
 ```
 
 ### Advanced Usage
-You can optionally provide a hardcoded `Id` for the DOM element and override the backend endpoint that fetches the file using `ActionUrl`.
+You can optionally provide a fixed `Id` for the DOM element and override the endpoint that returns the file using `ActionUrl`.
 
 ```html
 @await Html.PartialAsync("UI/_AttachmentCard", new {
@@ -49,22 +49,44 @@ You can optionally provide a hardcoded `Id` for the DOM element and override the
 
 ## Properties
 
-The component accepts an anonymous object with the following properties.
+The component accepts an anonymous object with the following properties (names are case-insensitive).
 
 | Property    | Type   | Default Value                    | Description |
 | :---------- | :----- | :------------------------------- | :---------- |
-| `Id`        | string | Auto-generated (`attachCard-&#123;Guid&#125;`) | The internal DOM ID for the outermost container div. If not provided, a unique ID is automatically generated. |
-| `FileName`  | string | Inferred from `FileId`           | The main title of the file displayed in the card. Used to infer the preview `FileType`. If omitted, it will try to extract the file name from `FileId`. |
-| `Details`   | string | `""`                             | The subtitle or brief description shown right below the file name. |
-| `FileId`    | string | `""`                             | The unique identifier used to fetch the file from the backend, appended to the `ActionUrl`. It can also be a full direct URL to a file. |
-| `ActionUrl` | string | `"/Common/PreviewAttachment"`    | The base endpoint called to fetch the file stream for the preview modal. By default, relies on the `PreviewAttachment` endpoint in the `Common` controller, but it can be overridden. |
+| `Id`        | string | Auto-generated (`attachCard-{8 hex chars}`) | The DOM ID of the outer container. |
+| `FileName`  | string | Derived from `FileId`           | The title shown in the card, also used to infer the file type. If omitted, the last path segment of `FileId` (without query string) is used. |
+| `Details`   | string | `""`                             | The description shown below the file name. |
+| `FileId`    | string | `""`                             | The file's ID. The preview URL is always `{ActionUrl}/{FileId}`, so a full URL here is appended to `ActionUrl` rather than used directly. |
+| `ActionUrl` | string | `"/Common/PreviewAttachment"`    | The base path of the endpoint that returns the file for the preview. |
+
+## Behavior
+
+- The extension is mapped to `pdf`, `image`, `word`, `excel`, or `other`, and passed to the preview function. The card always shows the same paperclip icon.
+- The preview button calls the global `openAttachmentFromUrl(fileId, fileName, fileType)`. It builds `{ActionUrl}/{FileId}` and calls `showFilePreview(url, fileName, fileType)`, or else `window.openPdfViewer(url, fileName)`, or else opens the URL in a new tab. If `FileId` is empty, it shows a status modal with `الملف غير متاح` (file not available).
+- The card has no download button.
 
 ## Dependencies
-This component relies on two other standard partial views to render previews and handle errors gracefully:
-1. `UI/_FilePreview`: Handles displaying the preview overlay over the page.
-2. `UI/_StatusModal`: Triggers an info/warning popup if the requested file is missing.
+This component relies on two other partial views:
+1. `UI/_FilePreview`: provides `showFilePreview` and the preview overlay. It is not documented in this repository.
+2. `UI/_StatusModal`: provides `showStatusModal`, used when `FileId` is empty.
 
-*(Both are automatically included at the bottom of the partial block).*
+Both are rendered by every AttachmentCard instance, at the bottom of the partial. The card also uses Bootstrap 5 classes (`btn`, `btn-sm`, `d-flex`, `fw-bold`, `text-muted`, spacing utilities).
+
+## Known Limitations
+
+- `window.openAttachmentFromUrl` is defined only once per page, by whichever component renders first. **AttachBox defines a function with the same name**, so on a page with both components, or with several cards using different `ActionUrl`s, every preview button uses the `ActionUrl` of the first one rendered.
+- The `<style>` block is meant to be rendered once, but the check uses the partial's own copy of `ViewData`, which is not shared between partial calls, so it is rendered for every card.
+
+## Accessibility
+
+- The preview button has visible text (`عرض`).
+- The file name is always an `<h6>`; check that this fits your page's heading structure.
+- The decorative icon has no `aria-hidden` attribute.
+
+## Security Notes
+
+- `FileId` and `FileName` are placed inside a JavaScript string in the preview button's inline `onclick` attribute. Razor's HTML encoding is decoded by the browser before the script runs, so a value containing `'` breaks the handler, and a crafted value can execute script. Only use trusted, sanitized IDs and file names.
+- Elsewhere, values use normal Razor encoding.
 
 </TabItem>
 

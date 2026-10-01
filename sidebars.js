@@ -19,7 +19,7 @@ const sidebars = {
         { type: "doc", id: "components/InputField/index", label: "InputField" },
         { type: "doc", id: "components/AutoComplete/index", label: "AutoComplete" },
         { type: "doc", id: "components/SelectInput/index", label: "SelectInput" },
-        { type: "doc", id: "components/MomahSelect/index", label: "MomahSelect" },
+        { type: "doc", id: "components/SmartSelect/index", label: "SmartSelect" },
         { type: "doc", id: "components/ChipSelect/index", label: "ChipSelect" },
         { type: "doc", id: "components/FileUpload/index", label: "FileUpload" },
         { type: "doc", id: "components/AttachBox/index", label: "AttachBox" },
@@ -32,7 +32,7 @@ const sidebars = {
       label: "📊 Data Display",
       collapsed: false,
       items: [
-        { type: "doc", id: "components/momah-table/index", label: "MomahTable Grid" },
+        { type: "doc", id: "components/DataTable/index", label: "DataTable" },
         { type: "doc", id: "components/Badge/index", label: "Badge" },
         { type: "doc", id: "components/AttachmentCard/index", label: "AttachmentCard" },
       ],
